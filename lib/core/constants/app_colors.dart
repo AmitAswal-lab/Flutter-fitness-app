@@ -10,4 +10,11 @@ class AppColors {
 
   static const Color textPrimary = Color(0xFF000000);
   static const Color textSecondary = Color(0xFF757575);
+
+  // Light colors for use on dark backgrounds
+  static const Color white = Colors.white;
+  static const Color white70 = Color(0xB3FFFFFF); // 70% opacity
+  static const Color white80 = Color(0xCCFFFFFF); // 80% opacity
+  static const Color white20 = Color(0x33FFFFFF); // 20% opacity
+  static const Color white15 = Color(0x26FFFFFF); // 15% opacity
 }

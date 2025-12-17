@@ -2,10 +2,10 @@ import 'package:equatable/equatable.dart';
 
 class StepRecord extends Equatable {
   final int steps;
-  final DateTime date;
+  final DateTime timestamp;
 
-  const StepRecord({required this.steps, required this.date});
+  const StepRecord({required this.steps, required this.timestamp});
 
   @override
-  List<Object?> get props => [steps, date];
+  List<Object?> get props => [steps, timestamp];
 }

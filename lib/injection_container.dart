@@ -5,7 +5,9 @@ import 'package:fitness_app/features/steps/domain/repositories/step_repository.d
 import 'package:fitness_app/features/steps/domain/usecases/get_daily_steps.dart';
 import 'package:fitness_app/features/steps/domain/usecases/get_step_stream.dart';
 import 'package:fitness_app/features/steps/domain/usecases/get_weekly_steps.dart';
+import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final sl = GetIt.instance;
 
@@ -30,4 +32,11 @@ Future<void> init() async {
   sl.registerLazySingleton<PedometerDataSource>(
     () => PedometerDataSourceImpl(),
   );
+
+  //Bloc
+  sl.registerFactory(() => StepsBloc(getStepStream: sl()));
+
+  //External
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
 }

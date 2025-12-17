@@ -6,3 +6,5 @@ sealed class StepsEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
+class WatchStepsSpeed extends StepsEvent {}

@@ -13,4 +13,8 @@ class StepModel extends StepRecord {
   Map<String, dynamic> toJson() {
     return {'steps': steps, 'timestamp': timestamp};
   }
+
+  StepRecord toEntity() {
+    return StepRecord(steps: steps, timestamp: timestamp);
+  }
 }

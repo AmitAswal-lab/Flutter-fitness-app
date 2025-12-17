@@ -1,3 +1,4 @@
+import 'package:fitness_app/features/steps/domain/entities/step_record.dart';
 import 'package:fitness_app/features/steps/domain/usecases/get_step_stream.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -19,12 +20,11 @@ class StepsBloc extends Bloc<StepsEvent, StepsState> {
     try {
       await emit.forEach(
         getStepStream(),
-        onData: (step) => StepsLoaded(steps: step.steps),
-        onError: (error) => StepsError(error.toString()),
+        onData: (stepRecord) => StepsLoadSuccess(stepRecord: stepRecord),
+        onError: (error, stackTrace) => StepsError(error.toString()),
       );
     } catch (e) {
       emit(StepsError(e.toString()));
     }
-    final stepStream = getStepStream.call();
   }
 }
