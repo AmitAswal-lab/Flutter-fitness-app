@@ -117,8 +117,9 @@ class StepCounterCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Unable to load steps',
-                style: TextStyle(color: AppColors.white80, fontSize: 14),
+                'Error: ${state.message}',
+                style: TextStyle(color: AppColors.white80, fontSize: 12),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

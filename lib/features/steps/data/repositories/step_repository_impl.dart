@@ -1,5 +1,6 @@
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/step_local_datasource.dart';
+import 'package:fitness_app/features/steps/data/models/step_model.dart';
 import 'package:fitness_app/features/steps/domain/entities/step_record.dart';
 import 'package:fitness_app/features/steps/domain/repositories/step_repository.dart';
 
@@ -54,6 +55,11 @@ class StepRepositoryImpl implements StepsRepository {
       final updatedRecord = StepRecord(
         steps: totalStepsToday,
         timestamp: DateTime.now(),
+      );
+
+      // Save the updated step count to local storage
+      await stepLocalDatasource.cacheDailySteps(
+        StepModel(steps: totalStepsToday, timestamp: updatedRecord.timestamp),
       );
 
       yield updatedRecord;
