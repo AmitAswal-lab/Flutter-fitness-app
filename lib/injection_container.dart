@@ -12,18 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  //UseCases
-  sl.registerLazySingleton(() => GetStepStream(sl()));
-  sl.registerLazySingleton(() => GetDailySteps(sl()));
-  sl.registerLazySingleton(() => GetWeeklySteps(sl()));
-
-  //Repositories
-  sl.registerLazySingleton<StepsRepository>(
-    () => StepRepositoryImpl(
-      pedometerDatasource: sl(),
-      stepLocalDatasource: sl(),
-    ),
-  );
+  //External - must be registered first
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
 
   //DataSources
   sl.registerLazySingleton<StepLocalDatasource>(
@@ -33,10 +24,19 @@ Future<void> init() async {
     () => PedometerDataSourceImpl(),
   );
 
+  //Repositories
+  sl.registerLazySingleton<StepsRepository>(
+    () => StepRepositoryImpl(
+      pedometerDatasource: sl(),
+      stepLocalDatasource: sl(),
+    ),
+  );
+
+  //UseCases
+  sl.registerLazySingleton(() => GetStepStream(sl()));
+  sl.registerLazySingleton(() => GetDailySteps(sl()));
+  sl.registerLazySingleton(() => GetWeeklySteps(sl()));
+
   //Bloc
   sl.registerFactory(() => StepsBloc(getStepStream: sl()));
-
-  //External
-  final sharedPreferences = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => sharedPreferences);
 }

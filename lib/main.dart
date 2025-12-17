@@ -6,7 +6,7 @@ import 'package:fitness_app/injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  di.init();
+  await di.init();
   runApp(MyApp());
 }
 
