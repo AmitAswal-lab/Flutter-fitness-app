@@ -7,6 +7,7 @@ import 'package:fitness_app/features/auth/domain/usecases/get_current_user.dart'
 import 'package:fitness_app/features/auth/domain/usecases/sign_in.dart';
 import 'package:fitness_app/features/auth/domain/usecases/sign_out.dart';
 import 'package:fitness_app/features/auth/domain/usecases/sign_up.dart';
+import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/step_local_datasource.dart';
 import 'package:fitness_app/features/steps/data/repositories/step_repository_impl.dart';
@@ -43,6 +44,17 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SignOut(sl()));
   sl.registerLazySingleton(() => GetCurrentUser(sl()));
   sl.registerLazySingleton(() => GetAuthState(sl()));
+
+  // Bloc
+  sl.registerFactory(
+    () => AuthBloc(
+      signIn: sl(),
+      signUp: sl(),
+      signOutUseCase: sl(),
+      getCurrentUser: sl(),
+      getAuthState: sl(),
+    ),
+  );
 
   //=== Steps Feature ===
   // DataSources
