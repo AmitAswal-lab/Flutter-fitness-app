@@ -9,7 +9,7 @@ class UserModel extends UserEntity {
     super.photoUrl,
   });
 
-  /// Factory to create UserModel from Firebase User
+  // Factory to create UserModel from Firebase User
   factory UserModel.fromFirebaseUser(User user) {
     return UserModel(
       uid: user.uid,
@@ -19,7 +19,7 @@ class UserModel extends UserEntity {
     );
   }
 
-  /// Factory to create UserModel from JSON
+  // Factory to create UserModel from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       uid: json['uid'] as String,
@@ -29,7 +29,7 @@ class UserModel extends UserEntity {
     );
   }
 
-  /// Convert to JSON for storage/API
+  // Convert to JSON for storage/API
   Map<String, dynamic> toJson() {
     return {
       'uid': uid,
@@ -39,7 +39,7 @@ class UserModel extends UserEntity {
     };
   }
 
-  /// Convert to base entity
+  // Convert to base entity
   UserEntity toEntity() {
     return UserEntity(
       uid: uid,
@@ -49,7 +49,7 @@ class UserModel extends UserEntity {
     );
   }
 
-  /// Create a copy with modified fields
+  // Create a copy with modified fields
   UserModel copyWith({
     String? uid,
     String? email,

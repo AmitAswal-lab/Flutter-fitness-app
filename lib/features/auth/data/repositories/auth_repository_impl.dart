@@ -23,6 +23,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(user.toEntity());
     } on FirebaseAuthException catch (e) {
       return Left(AuthFailure(_mapFirebaseError(e.code)));
+    } on FirebaseException catch (e) {
+      return Left(AuthFailure(e.message ?? 'Authentication failed'));
     } catch (e) {
       return Left(AuthFailure(e.toString()));
     }
@@ -43,6 +45,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(user.toEntity());
     } on FirebaseAuthException catch (e) {
       return Left(AuthFailure(_mapFirebaseError(e.code)));
+    } on FirebaseException catch (e) {
+      return Left(AuthFailure(e.message ?? 'Authentication failed'));
     } catch (e) {
       return Left(AuthFailure(e.toString()));
     }
