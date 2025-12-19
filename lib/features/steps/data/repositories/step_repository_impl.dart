@@ -15,6 +15,16 @@ class StepRepositoryImpl implements StepsRepository {
 
   int _stepsAtSessionStart = 0;
   bool _isFirstEvent = true;
+  String? _currentUserId;
+
+  /// Reset session state when user changes
+  void _resetSessionIfNeeded(String userId) {
+    if (_currentUserId != userId) {
+      _stepsAtSessionStart = 0;
+      _isFirstEvent = true;
+      _currentUserId = userId;
+    }
+  }
 
   bool _isToday(DateTime date) {
     final now = DateTime.now();
@@ -36,6 +46,9 @@ class StepRepositoryImpl implements StepsRepository {
 
   @override
   Stream<StepRecord> getStepStream(String userId) async* {
+    // Reset session if user changed
+    _resetSessionIfNeeded(userId);
+
     StepRecord currentDailyCount = await getDailySteps(userId);
     int initialSavedSteps = currentDailyCount.steps;
 
