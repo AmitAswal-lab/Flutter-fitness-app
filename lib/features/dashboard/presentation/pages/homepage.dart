@@ -1,3 +1,6 @@
+import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:fitness_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/widgets/step_counter_card.dart';
 import 'package:fitness_app/injection_container.dart';
@@ -28,6 +31,25 @@ class _HomepageState extends State<Homepage> {
       _permissionGranted = status.isGranted;
       _permissionChecked = true;
     });
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<AuthBloc>()),
+            BlocProvider(create: (_) => sl<ProfileBloc>()),
+          ],
+          child: const ProfilePage(),
+        ),
+      ),
+    );
+  }
+
+  void _signOut() {
+    context.read<AuthBloc>().add(AuthSignOutRequested());
   }
 
   @override
@@ -75,7 +97,21 @@ class _HomepageState extends State<Homepage> {
     return BlocProvider(
       create: (context) => sl<StepsBloc>()..add(WatchStepsSpeed()),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Home')),
+        appBar: AppBar(
+          title: const Text('Home'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person_outline),
+              onPressed: _navigateToProfile,
+              tooltip: 'Profile',
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: _signOut,
+              tooltip: 'Sign Out',
+            ),
+          ],
+        ),
         body: const SingleChildScrollView(
           child: Column(children: [StepCounterCard()]),
         ),

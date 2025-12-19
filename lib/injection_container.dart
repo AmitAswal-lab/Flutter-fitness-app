@@ -8,6 +8,12 @@ import 'package:fitness_app/features/auth/domain/usecases/sign_in.dart';
 import 'package:fitness_app/features/auth/domain/usecases/sign_out.dart';
 import 'package:fitness_app/features/auth/domain/usecases/sign_up.dart';
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:fitness_app/features/profile/data/datasources/profile_local_datasource.dart';
+import 'package:fitness_app/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:fitness_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:fitness_app/features/profile/domain/usecases/get_profile.dart';
+import 'package:fitness_app/features/profile/domain/usecases/save_profile.dart';
+import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/step_local_datasource.dart';
 import 'package:fitness_app/features/steps/data/repositories/step_repository_impl.dart';
@@ -80,4 +86,22 @@ Future<void> init() async {
 
   // Bloc
   sl.registerFactory(() => StepsBloc(getStepStream: sl()));
+
+  //=== Profile Feature ===
+  // DataSources
+  sl.registerLazySingleton<ProfileLocalDataSource>(
+    () => ProfileLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(localDataSource: sl()),
+  );
+
+  // UseCases
+  sl.registerLazySingleton(() => GetProfile(sl()));
+  sl.registerLazySingleton(() => SaveProfile(sl()));
+
+  // Bloc
+  sl.registerFactory(() => ProfileBloc(getProfile: sl(), saveProfile: sl()));
 }
