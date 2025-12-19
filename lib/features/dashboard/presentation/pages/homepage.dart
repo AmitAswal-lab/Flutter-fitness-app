@@ -94,8 +94,12 @@ class _HomepageState extends State<Homepage> {
       );
     }
 
+    final authState = context.read<AuthBloc>().state;
+    final userId = authState is AuthAuthenticated ? authState.user.uid : '';
+
     return BlocProvider(
-      create: (context) => sl<StepsBloc>()..add(WatchStepsSpeed()),
+      create: (context) =>
+          sl<StepsBloc>()..add(WatchStepsSpeed(userId: userId)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Home'),

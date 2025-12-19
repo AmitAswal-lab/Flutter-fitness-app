@@ -6,7 +6,7 @@ class GetStepStream {
 
   GetStepStream(this.repository);
 
-  Stream<StepRecord> call() {
-    return repository.getStepStream();
+  Stream<StepRecord> call(String userId) {
+    return repository.getStepStream(userId);
   }
 }

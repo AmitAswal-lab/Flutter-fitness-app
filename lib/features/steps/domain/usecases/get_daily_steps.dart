@@ -5,7 +5,7 @@ class GetDailySteps {
   final StepsRepository repository;
   const GetDailySteps(this.repository);
 
-  Future<StepRecord> call() {
-    return repository.getDailySteps();
+  Future<StepRecord> call(String userId) {
+    return repository.getDailySteps(userId);
   }
 }

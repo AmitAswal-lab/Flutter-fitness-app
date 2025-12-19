@@ -5,7 +5,7 @@ class GetWeeklySteps {
   final StepsRepository repository;
   const GetWeeklySteps(this.repository);
 
-  Future<List<StepRecord>> call() {
-    return repository.getWeeklySteps();
+  Future<List<StepRecord>> call(String userId) {
+    return repository.getWeeklySteps(userId);
   }
 }

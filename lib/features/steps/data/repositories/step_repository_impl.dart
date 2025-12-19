@@ -24,8 +24,8 @@ class StepRepositoryImpl implements StepsRepository {
   }
 
   @override
-  Future<StepRecord> getDailySteps() async {
-    final savedSteps = await stepLocalDatasource.getLastSavedSteps();
+  Future<StepRecord> getDailySteps(String userId) async {
+    final savedSteps = await stepLocalDatasource.getLastSavedSteps(userId);
 
     if (savedSteps != null && _isToday(savedSteps.timestamp)) {
       return savedSteps;
@@ -35,8 +35,8 @@ class StepRepositoryImpl implements StepsRepository {
   }
 
   @override
-  Stream<StepRecord> getStepStream() async* {
-    StepRecord currentDailyCount = await getDailySteps();
+  Stream<StepRecord> getStepStream(String userId) async* {
+    StepRecord currentDailyCount = await getDailySteps(userId);
     int initialSavedSteps = currentDailyCount.steps;
 
     yield currentDailyCount;
@@ -59,6 +59,7 @@ class StepRepositoryImpl implements StepsRepository {
 
       // Save the updated step count to local storage
       await stepLocalDatasource.cacheDailySteps(
+        userId,
         StepModel(steps: totalStepsToday, timestamp: updatedRecord.timestamp),
       );
 
@@ -67,8 +68,8 @@ class StepRepositoryImpl implements StepsRepository {
   }
 
   @override
-  Future<List<StepRecord>> getWeeklySteps() async {
-    final history = await stepLocalDatasource.getweeklyHistory();
+  Future<List<StepRecord>> getWeeklySteps(String userId) async {
+    final history = await stepLocalDatasource.getweeklyHistory(userId);
     return history.map((e) => e as StepRecord).toList();
   }
 }

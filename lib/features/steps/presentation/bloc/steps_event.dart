@@ -7,4 +7,10 @@ sealed class StepsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class WatchStepsSpeed extends StepsEvent {}
+class WatchStepsSpeed extends StepsEvent {
+  final String userId;
+  const WatchStepsSpeed({required this.userId});
+
+  @override
+  List<Object> get props => [userId];
+}

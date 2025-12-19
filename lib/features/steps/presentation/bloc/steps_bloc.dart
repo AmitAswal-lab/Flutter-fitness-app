@@ -19,7 +19,7 @@ class StepsBloc extends Bloc<StepsEvent, StepsState> {
     emit(StepsLoading());
     try {
       await emit.forEach(
-        getStepStream(),
+        getStepStream(event.userId),
         onData: (stepRecord) => StepsLoadSuccess(stepRecord: stepRecord),
         onError: (error, stackTrace) => StepsError(error.toString()),
       );
