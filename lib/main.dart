@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fitness_app/core/theme/app_theme.dart';
+import 'package:fitness_app/core/utils/device_utils.dart';
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:fitness_app/features/auth/presentation/pages/auth_wrapper.dart';
 import 'package:fitness_app/firebase_options.dart';
@@ -10,7 +11,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await di.init();
+
+  // Detect if running on simulator
+  final isSimulator = await DeviceUtils.isSimulator();
+
+  await di.init(isSimulator: isSimulator);
   runApp(const MyApp());
 }
 

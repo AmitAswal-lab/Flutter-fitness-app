@@ -14,6 +14,7 @@ import 'package:fitness_app/features/profile/domain/repositories/profile_reposit
 import 'package:fitness_app/features/profile/domain/usecases/get_profile.dart';
 import 'package:fitness_app/features/profile/domain/usecases/save_profile.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:fitness_app/features/steps/data/datasources/mock_pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/step_local_datasource.dart';
 import 'package:fitness_app/features/steps/data/repositories/step_repository_impl.dart';
@@ -27,7 +28,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final sl = GetIt.instance;
 
-Future<void> init() async {
+Future<void> init({bool isSimulator = false}) async {
   //=== External ===
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
@@ -68,7 +69,7 @@ Future<void> init() async {
     () => StepLocalDatasourceImpl(sharedPreferences: sl()),
   );
   sl.registerLazySingleton<PedometerDataSource>(
-    () => PedometerDataSourceImpl(),
+    () => isSimulator ? MockPedometerDataSource() : PedometerDataSourceImpl(),
   );
 
   // Repositories

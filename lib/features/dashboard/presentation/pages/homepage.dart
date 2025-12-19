@@ -1,3 +1,4 @@
+import 'package:fitness_app/core/utils/device_utils.dart';
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/profile/presentation/pages/profile_page.dart';
@@ -26,6 +27,15 @@ class _HomepageState extends State<Homepage> {
   }
 
   Future<void> _requestPermission() async {
+    // Skip permission request on simulator - auto-grant for testing
+    if (DeviceUtils.isSimulatorSync) {
+      setState(() {
+        _permissionGranted = true;
+        _permissionChecked = true;
+      });
+      return;
+    }
+
     final status = await Permission.activityRecognition.request();
     setState(() {
       _permissionGranted = status.isGranted;
