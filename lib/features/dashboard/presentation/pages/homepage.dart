@@ -1,5 +1,7 @@
 import 'package:fitness_app/core/utils/device_utils.dart';
+import 'package:fitness_app/core/widgets/lifecycle_observer.dart';
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:fitness_app/features/profile/domain/entities/user_profile.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
@@ -41,25 +43,6 @@ class _HomepageState extends State<Homepage> {
       _permissionGranted = status.isGranted;
       _permissionChecked = true;
     });
-  }
-
-  void _navigateToProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: context.read<AuthBloc>()),
-            BlocProvider(create: (_) => sl<ProfileBloc>()),
-          ],
-          child: const ProfilePage(),
-        ),
-      ),
-    );
-  }
-
-  void _signOut() {
-    context.read<AuthBloc>().add(AuthSignOutRequested());
   }
 
   @override
@@ -107,29 +90,86 @@ class _HomepageState extends State<Homepage> {
     final authState = context.read<AuthBloc>().state;
     final userId = authState is AuthAuthenticated ? authState.user.uid : '';
 
-    return BlocProvider(
-      create: (context) =>
-          sl<StepsBloc>()..add(WatchStepsSpeed(userId: userId)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) =>
+              sl<StepsBloc>()..add(WatchStepsSpeed(userId: userId)),
+        ),
+        BlocProvider(
+          create: (context) =>
+              sl<ProfileBloc>()..add(LoadProfile(userId: userId)),
+        ),
+      ],
+      child: _HomeContent(userId: userId),
+    );
+  }
+}
+
+/// Separate widget to access BLoC context for lifecycle refresh
+class _HomeContent extends StatelessWidget {
+  final String userId;
+
+  const _HomeContent({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return LifecycleObserver(
+      onResume: () {
+        // Refresh steps when app comes back from background
+        context.read<StepsBloc>().add(RefreshSteps(userId: userId));
+        context.read<ProfileBloc>().add(LoadProfile(userId: userId));
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Home'),
           actions: [
             IconButton(
               icon: const Icon(Icons.person_outline),
-              onPressed: _navigateToProfile,
+              onPressed: () => _navigateToProfile(context),
               tooltip: 'Profile',
             ),
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: _signOut,
+              onPressed: () => _signOut(context),
               tooltip: 'Sign Out',
             ),
           ],
         ),
-        body: const SingleChildScrollView(
-          child: Column(children: [StepCounterCard()]),
+        body: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, profileState) {
+            UserProfile? profile;
+            if (profileState is ProfileLoaded) {
+              profile = profileState.profile;
+            } else if (profileState is ProfileSaved) {
+              profile = profileState.profile;
+            }
+
+            return SingleChildScrollView(
+              child: Column(children: [StepCounterCard(userProfile: profile)]),
+            );
+          },
         ),
       ),
     );
+  }
+
+  void _navigateToProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<AuthBloc>()),
+            BlocProvider(create: (_) => sl<ProfileBloc>()),
+          ],
+          child: const ProfilePage(),
+        ),
+      ),
+    );
+  }
+
+  void _signOut(BuildContext context) {
+    context.read<AuthBloc>().add(AuthSignOutRequested());
   }
 }

@@ -1,4 +1,6 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
+import 'package:fitness_app/core/utils/fitness_calculator.dart';
+import 'package:fitness_app/features/profile/domain/entities/user_profile.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,8 +8,9 @@ import 'dart:math' as math;
 
 class StepCounterCard extends StatelessWidget {
   final int goalSteps;
+  final UserProfile? userProfile;
 
-  const StepCounterCard({super.key, this.goalSteps = 10000});
+  const StepCounterCard({super.key, this.goalSteps = 10000, this.userProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -213,8 +216,17 @@ class StepCounterCard extends StatelessWidget {
   Widget _buildGoalInfo(StepsState state) {
     final steps = state is StepsLoadSuccess ? state.stepRecord.steps : 0;
     final remaining = (goalSteps - steps).clamp(0, goalSteps);
-    final calories = (steps * 0.04).toInt();
-    final distance = (steps * 0.0008).toStringAsFixed(2);
+
+    // Use FitnessCalculator with user profile for accurate calculations
+    final calories = FitnessCalculator.getCaloriesBurned(
+      steps,
+      profile: userProfile,
+    ).toInt();
+    final distanceKm = FitnessCalculator.getDistanceKm(
+      steps,
+      profile: userProfile,
+    );
+    final distanceDisplay = FitnessCalculator.formatDistance(distanceKm);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -231,7 +243,7 @@ class StepCounterCard extends StatelessWidget {
         ),
         _buildStatItem(
           icon: Icons.straighten,
-          value: '$distance km',
+          value: distanceDisplay,
           label: 'Distance',
         ),
       ],

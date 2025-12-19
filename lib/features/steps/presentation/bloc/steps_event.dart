@@ -14,3 +14,12 @@ class WatchStepsSpeed extends StepsEvent {
   @override
   List<Object> get props => [userId];
 }
+
+/// Event to refresh step count from saved data (e.g., on app resume)
+class RefreshSteps extends StepsEvent {
+  final String userId;
+  const RefreshSteps({required this.userId});
+
+  @override
+  List<Object> get props => [userId];
+}
