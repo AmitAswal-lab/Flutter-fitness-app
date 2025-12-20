@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WorkoutLibraryPage extends StatefulWidget {
-  const WorkoutLibraryPage({super.key});
+  final String userId;
+
+  const WorkoutLibraryPage({super.key, required this.userId});
 
   @override
   State<WorkoutLibraryPage> createState() => _WorkoutLibraryPageState();
@@ -176,17 +178,21 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _buildInfoChip(
-                    Icons.timer,
-                    '${workout.estimatedMinutes} min',
+                  Flexible(
+                    child: _buildInfoChip(
+                      Icons.timer,
+                      '${workout.estimatedMinutes}m',
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  _buildInfoChip(
-                    Icons.fitness_center,
-                    '${workout.exercises.length} exercises',
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: _buildInfoChip(
+                      Icons.fitness_center,
+                      '${workout.exercises.length} ex',
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  _buildDifficultyChip(workout.difficulty),
+                  const SizedBox(width: 6),
+                  Flexible(child: _buildDifficultyChip(workout.difficulty)),
                 ],
               ),
             ],
@@ -198,17 +204,26 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
 
   Widget _buildInfoChip(IconData icon, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.chipBackground,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.grey[700]),
+          Icon(icon, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 4),
-          Text(text, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+          Flexible(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -218,33 +233,36 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
     Color bgColor;
     switch (difficulty) {
       case WorkoutDifficulty.beginner:
-        bgColor = Colors.green[100]!;
+        bgColor = AppColors.successLight;
         break;
       case WorkoutDifficulty.intermediate:
-        bgColor = Colors.orange[100]!;
+        bgColor = AppColors.warningLight;
         break;
       case WorkoutDifficulty.advanced:
-        bgColor = Colors.red[100]!;
+        bgColor = AppColors.errorLight;
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(difficulty.icon, style: const TextStyle(fontSize: 12)),
-          const SizedBox(width: 4),
-          Text(
-            difficulty.displayName,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[800],
-              fontWeight: FontWeight.w500,
+          Text(difficulty.icon, style: const TextStyle(fontSize: 11)),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Text(
+              difficulty.displayName,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -258,7 +276,7 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<WorkoutBloc>(),
-          child: WorkoutDetailPage(workout: workout),
+          child: WorkoutDetailPage(workout: workout, userId: widget.userId),
         ),
       ),
     );

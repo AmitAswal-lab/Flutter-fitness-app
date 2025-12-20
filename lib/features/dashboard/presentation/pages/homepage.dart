@@ -1,3 +1,4 @@
+import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/core/utils/device_utils.dart';
 import 'package:fitness_app/core/widgets/lifecycle_observer.dart';
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -171,15 +172,15 @@ class _HomeContent extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
+              colors: [AppColors.workoutCard, AppColors.workoutCardDark],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.orange.withValues(alpha: 0.3),
+                color: AppColors.workoutCard.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -190,12 +191,12 @@ class _HomeContent extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.white20,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.fitness_center,
-                  color: Colors.white,
+                  color: AppColors.white,
                   size: 32,
                 ),
               ),
@@ -207,7 +208,7 @@ class _HomeContent extends StatelessWidget {
                     Text(
                       'Workouts',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -215,14 +216,14 @@ class _HomeContent extends StatelessWidget {
                     SizedBox(height: 4),
                     Text(
                       'Browse workout library',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: AppColors.white70, fontSize: 14),
                     ),
                   ],
                 ),
               ),
               const Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.white70,
+                color: AppColors.white70,
                 size: 20,
               ),
             ],
@@ -238,7 +239,7 @@ class _HomeContent extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<WorkoutBloc>(),
-          child: const WorkoutLibraryPage(),
+          child: WorkoutLibraryPage(userId: userId),
         ),
       ),
     );

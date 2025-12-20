@@ -1,12 +1,18 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/features/workout/domain/entities/exercise.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_template.dart';
+import 'package:fitness_app/features/workout/presentation/pages/active_workout_page.dart';
 import 'package:flutter/material.dart';
 
 class WorkoutDetailPage extends StatelessWidget {
   final WorkoutTemplate workout;
+  final String userId;
 
-  const WorkoutDetailPage({super.key, required this.workout});
+  const WorkoutDetailPage({
+    super.key,
+    required this.workout,
+    required this.userId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -239,15 +245,7 @@ class WorkoutDetailPage extends StatelessWidget {
         width: double.infinity,
         height: 56,
         child: ElevatedButton(
-          onPressed: () {
-            // TODO: Navigate to active workout page
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Starting workout... (Coming in Phase 3)'),
-                duration: Duration(seconds: 2),
-              ),
-            );
-          },
+          onPressed: () => _startWorkout(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -268,6 +266,15 @@ class WorkoutDetailPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _startWorkout(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ActiveWorkoutPage(workout: workout, userId: userId),
       ),
     );
   }

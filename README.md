@@ -51,7 +51,7 @@ lib/
 │   ├── workout/             # Workout feature
 │   │   ├── data/            # Models, Sample data, RepositoryImpl
 │   │   ├── domain/          # Exercise, WorkoutTemplate, WorkoutSession
-│   │   └── presentation/    # WorkoutBloc, LibraryPage, DetailPage
+│   │   └── presentation/    # WorkoutBloc, LibraryPage, ActiveWorkoutPage
 │   │
 │   └── dashboard/           # Homepage
 │
