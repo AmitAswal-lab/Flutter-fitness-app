@@ -8,7 +8,8 @@ A Flutter fitness tracking app built with **Clean Architecture** and **BLoC** pa
 - 👟 **Step Tracking** - Real-time pedometer with user-isolated data
 - 📊 **Step Details Page** - Daily goal, calories, distance, active minutes
 - 📈 **Weekly History** - 7-day bar chart with auto-archived daily totals
-- 🎯 **Customizable Step Goal** - Set your own daily target.
+- 🎯 **Customizable Step Goal** - Set your own daily target (1k-30k)
+- 🏋️ **Workout Library** - 6 pre-built templates (Strength, HIIT, Cardio, Core) with 20 exercises
 - 👤 **User Profile** - Height, weight, DOB, gender with BMI calculation
 - 🔥 **Profile-Based Calculations** - Personalized calories (MET formula) & distance (stride from height)
 - 🧪 **Simulator Support** - Mock pedometer for iOS/Android simulator testing
@@ -46,6 +47,11 @@ lib/
 │   │   ├── data/            # Pedometer, LocalDatasource, History
 │   │   ├── domain/
 │   │   └── presentation/    # StepCounterCard, StepDetailsPage, WeeklyChart
+│   │
+│   ├── workout/             # Workout feature (NEW)
+│   │   ├── data/            # Models, Sample data, RepositoryImpl
+│   │   ├── domain/          # Exercise, WorkoutTemplate, WorkoutSession
+│   │   └── presentation/    # (Coming soon)
 │   │
 │   └── dashboard/           # Homepage
 │
