@@ -26,6 +26,7 @@ import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/workout/data/repositories/workout_repository_impl.dart';
 import 'package:fitness_app/features/workout/domain/repositories/workout_repository.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
+import 'package:fitness_app/features/workout/presentation/bloc/workout_history_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,20 +50,20 @@ Future<void> init({bool isSimulator = false}) async {
   );
 
   // UseCases
+  sl.registerLazySingleton(() => GetAuthState(sl()));
+  sl.registerLazySingleton(() => GetCurrentUser(sl()));
   sl.registerLazySingleton(() => SignIn(sl()));
   sl.registerLazySingleton(() => SignUp(sl()));
   sl.registerLazySingleton(() => SignOut(sl()));
-  sl.registerLazySingleton(() => GetCurrentUser(sl()));
-  sl.registerLazySingleton(() => GetAuthState(sl()));
 
   // Bloc
   sl.registerFactory(
     () => AuthBloc(
+      getAuthState: sl(),
+      getCurrentUser: sl(),
       signIn: sl(),
       signUp: sl(),
       signOutUseCase: sl(),
-      getCurrentUser: sl(),
-      getAuthState: sl(),
     ),
   );
 
@@ -71,21 +72,28 @@ Future<void> init({bool isSimulator = false}) async {
   sl.registerLazySingleton<StepLocalDatasource>(
     () => StepLocalDatasourceImpl(sharedPreferences: sl()),
   );
-  sl.registerLazySingleton<PedometerDataSource>(
-    () => isSimulator ? MockPedometerDataSource() : PedometerDataSourceImpl(),
-  );
+
+  if (isSimulator) {
+    sl.registerLazySingleton<PedometerDataSource>(
+      () => MockPedometerDataSource(),
+    );
+  } else {
+    sl.registerLazySingleton<PedometerDataSource>(
+      () => PedometerDataSourceImpl(),
+    );
+  }
 
   // Repositories
   sl.registerLazySingleton<StepsRepository>(
     () => StepRepositoryImpl(
-      pedometerDatasource: sl(),
       stepLocalDatasource: sl(),
+      pedometerDatasource: sl(),
     ),
   );
 
   // UseCases
-  sl.registerLazySingleton(() => GetStepStream(sl()));
   sl.registerLazySingleton(() => GetDailySteps(sl()));
+  sl.registerLazySingleton(() => GetStepStream(sl()));
   sl.registerLazySingleton(() => GetWeeklySteps(sl()));
 
   // Bloc
@@ -115,6 +123,7 @@ Future<void> init({bool isSimulator = false}) async {
     () => WorkoutRepositoryImpl(sharedPreferences: sl()),
   );
 
-  // Bloc
+  // Blocs
   sl.registerFactory(() => WorkoutBloc(repository: sl()));
+  sl.registerFactory(() => WorkoutHistoryBloc(repository: sl()));
 }

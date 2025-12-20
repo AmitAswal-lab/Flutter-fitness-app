@@ -33,6 +33,7 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     emit(
       ActiveWorkoutInProgress(
         template: event.template,
+        userId: event.userId,
         currentExerciseIndex: 0,
         currentSetIndex: 0,
         completedSets: [],
@@ -186,6 +187,7 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     emit(
       ActiveWorkoutCompleted(
         template: current.template,
+        userId: current.userId,
         completedSets: current.completedSets,
         totalSeconds: _elapsedSeconds,
       ),

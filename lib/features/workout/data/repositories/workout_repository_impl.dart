@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fitness_app/features/workout/data/datasources/sample_workout_data.dart';
+import 'package:fitness_app/features/workout/data/models/workout_session_model.dart';
 import 'package:fitness_app/features/workout/data/models/workout_template_model.dart';
 import 'package:fitness_app/features/workout/domain/entities/exercise.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_session.dart';
@@ -12,9 +13,10 @@ import 'package:uuid/uuid.dart';
 class WorkoutRepositoryImpl implements WorkoutRepository {
   final SharedPreferences sharedPreferences;
   static const _customWorkoutsKey = 'custom_workouts';
-  static const _workoutHistoryKey = 'workout_history';
 
   WorkoutRepositoryImpl({required this.sharedPreferences});
+
+  String _historyKey(String userId) => 'workout_history_$userId';
 
   @override
   Future<List<WorkoutTemplate>> getWorkoutTemplates() async {
@@ -82,8 +84,8 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
 
   @override
   Future<void> updateWorkoutSession(WorkoutSession session) async {
-    // For now, we'll save in-progress sessions to SharedPreferences
-    // In a real app, you might use SQLite for this
+    // For in-progress sessions, we could save to a temporary key
+    // For now, we only persist on completion
   }
 
   @override
@@ -97,14 +99,27 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
 
   Future<void> _saveToHistory(WorkoutSession session) async {
     final history = await getWorkoutHistory(session.userId);
-    // Note: For simplicity, we're not persisting full session data
-    // In production, use SQLite or Firestore
+    final updatedHistory = [session, ...history];
+
+    final jsonList = updatedHistory
+        .map((s) => WorkoutSessionModel.fromEntity(s).toJson())
+        .toList();
+
+    await sharedPreferences.setString(
+      _historyKey(session.userId),
+      jsonEncode(jsonList),
+    );
   }
 
   @override
   Future<List<WorkoutSession>> getWorkoutHistory(String userId) async {
-    // TODO: Implement full persistence
-    return [];
+    final jsonStr = sharedPreferences.getString(_historyKey(userId));
+    if (jsonStr == null) return [];
+
+    final List<dynamic> jsonList = jsonDecode(jsonStr);
+    return jsonList
+        .map((e) => WorkoutSessionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

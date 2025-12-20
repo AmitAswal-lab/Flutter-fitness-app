@@ -11,6 +11,7 @@ class ActiveWorkoutInitial extends ActiveWorkoutState {}
 
 class ActiveWorkoutInProgress extends ActiveWorkoutState {
   final WorkoutTemplate template;
+  final String userId;
   final int currentExerciseIndex;
   final int currentSetIndex;
   final List<CompletedSet> completedSets;
@@ -21,6 +22,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
 
   const ActiveWorkoutInProgress({
     required this.template,
+    required this.userId,
     required this.currentExerciseIndex,
     required this.currentSetIndex,
     required this.completedSets,
@@ -58,6 +60,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
   }) {
     return ActiveWorkoutInProgress(
       template: template,
+      userId: userId,
       currentExerciseIndex: currentExerciseIndex ?? this.currentExerciseIndex,
       currentSetIndex: currentSetIndex ?? this.currentSetIndex,
       completedSets: completedSets ?? this.completedSets,
@@ -82,11 +85,13 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
 
 class ActiveWorkoutCompleted extends ActiveWorkoutState {
   final WorkoutTemplate template;
+  final String userId;
   final List<CompletedSet> completedSets;
   final int totalSeconds;
 
   const ActiveWorkoutCompleted({
     required this.template,
+    required this.userId,
     required this.completedSets,
     required this.totalSeconds,
   });
@@ -98,5 +103,5 @@ class ActiveWorkoutCompleted extends ActiveWorkoutState {
   }
 
   @override
-  List<Object?> get props => [template, completedSets, totalSeconds];
+  List<Object?> get props => [template, userId, completedSets, totalSeconds];
 }

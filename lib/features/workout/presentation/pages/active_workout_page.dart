@@ -1,9 +1,13 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/features/workout/domain/entities/exercise.dart';
+import 'package:fitness_app/features/workout/domain/entities/workout_session.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_template.dart';
+import 'package:fitness_app/features/workout/domain/repositories/workout_repository.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/active_workout_bloc.dart';
+import 'package:fitness_app/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 class ActiveWorkoutPage extends StatelessWidget {
   final WorkoutTemplate workout;
@@ -542,7 +546,22 @@ class _ActiveWorkoutView extends StatelessWidget {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              // Save the completed workout to history
+              final repository = sl<WorkoutRepository>();
+              final session = WorkoutSession(
+                id: const Uuid().v4(),
+                userId: state.userId,
+                template: state.template,
+                startTime: DateTime.now().subtract(
+                  Duration(seconds: state.totalSeconds),
+                ),
+                endTime: DateTime.now(),
+                completedSets: state.completedSets,
+                status: WorkoutSessionStatus.completed,
+              );
+              await repository.completeWorkout(session);
+
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
