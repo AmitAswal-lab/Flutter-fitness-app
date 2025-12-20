@@ -5,9 +5,19 @@ A Flutter fitness tracking app built with **Clean Architecture** and **BLoC** pa
 ## Features
 
 - 🔐 **Authentication** - Email/password sign in & sign up with Firebase
-- 👟 **Step Tracking** - Real-time pedometer with daily/weekly stats
+- 👟 **Step Tracking** - Real-time pedometer with user-isolated data
+- 📊 **Step Details Page** - Daily goal, calories, distance, active minutes
+- 📈 **Weekly History** - 7-day bar chart with auto-archived daily totals
+- 🎯 **Customizable Step Goal** - Set your own daily target.
 - 👤 **User Profile** - Height, weight, DOB, gender with BMI calculation
+- 🔥 **Profile-Based Calculations** - Personalized calories (MET formula) & distance (stride from height)
 - 🧪 **Simulator Support** - Mock pedometer for iOS/Android simulator testing
+
+## Screenshots
+
+| Homepage                         | Step Details              |
+| -------------------------------- | ------------------------- |
+| Minimal step card, tap to expand | Full stats + weekly chart |
 
 ## Architecture
 
@@ -18,7 +28,8 @@ lib/
 │   ├── entities/            # UserEntity
 │   ├── error/               # Failure classes
 │   ├── theme/               # AppTheme
-│   └── utils/               # DeviceUtils
+│   ├── utils/               # DeviceUtils, FitnessCalculator
+│   └── widgets/             # LifecycleObserver
 │
 ├── features/
 │   ├── auth/                # Authentication feature
@@ -32,9 +43,9 @@ lib/
 │   │   └── presentation/
 │   │
 │   ├── steps/               # Step tracking feature
-│   │   ├── data/
+│   │   ├── data/            # Pedometer, LocalDatasource, History
 │   │   ├── domain/
-│   │   └── presentation/
+│   │   └── presentation/    # StepCounterCard, StepDetailsPage, WeeklyChart
 │   │
 │   └── dashboard/           # Homepage
 │
@@ -81,6 +92,17 @@ Output: `build/app/outputs/flutter-apk/app-release.apk`
 
 ## Development Notes
 
+### Step Calculations
+
+| Metric   | Formula                                           |
+| -------- | ------------------------------------------------- |
+| Distance | `steps × stride_length` (stride = height × 0.414) |
+| Calories | MET formula: `METs × 3.5 × weight × time / 200`   |
+
+### User-Specific Data
+
+All step data is stored with user-specific keys (`cached_steps_${userId}`) to ensure data isolation when switching accounts.
+
 ### Simulator Testing
 
-The app auto-detects iOS/Android simulators and uses a mock pedometer that simulates step counting. This allows testing profile and other features without activity recognition permissions.
+The app auto-detects iOS/Android simulators and uses a mock pedometer that simulates step counting.

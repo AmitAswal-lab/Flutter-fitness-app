@@ -1,17 +1,31 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/core/utils/fitness_calculator.dart';
+import 'package:fitness_app/features/profile/data/models/profile_model.dart';
 import 'package:fitness_app/features/profile/domain/entities/user_profile.dart';
+import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/widgets/weekly_chart_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' as math;
 
-class StepDetailsPage extends StatelessWidget {
+class StepDetailsPage extends StatefulWidget {
   final UserProfile? userProfile;
-  final int goalSteps;
 
-  const StepDetailsPage({super.key, this.userProfile, this.goalSteps = 10000});
+  const StepDetailsPage({super.key, this.userProfile});
+
+  @override
+  State<StepDetailsPage> createState() => _StepDetailsPageState();
+}
+
+class _StepDetailsPageState extends State<StepDetailsPage> {
+  late int _goalSteps;
+
+  @override
+  void initState() {
+    super.initState();
+    _goalSteps = widget.userProfile?.stepGoal ?? 10000;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +46,7 @@ class StepDetailsPage extends StatelessWidget {
               children: [
                 _buildStepCountSection(steps),
                 const SizedBox(height: 24),
-                _buildProgressSection(steps),
+                _buildProgressSection(context, steps),
                 const SizedBox(height: 24),
                 _buildStatsRow(steps),
                 const SizedBox(height: 24),
@@ -91,9 +105,9 @@ class StepDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressSection(int steps) {
-    final progress = (steps / goalSteps).clamp(0.0, 1.0);
-    final remaining = (goalSteps - steps).clamp(0, goalSteps);
+  Widget _buildProgressSection(BuildContext context, int steps) {
+    final progress = (steps / _goalSteps).clamp(0.0, 1.0);
+    final remaining = (_goalSteps - steps).clamp(0, _goalSteps);
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -117,13 +131,33 @@ class StepDetailsPage extends StatelessWidget {
                 'Daily Goal Progress',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
-              Text(
-                '${(progress * 100).toInt()}%',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
+              Row(
+                children: [
+                  Text(
+                    '${(progress * 100).toInt()}%',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _showEditGoalDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -149,7 +183,7 @@ class StepDetailsPage extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'of ${_formatNumber(goalSteps)}',
+                      'of ${_formatNumber(_goalSteps)}',
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
@@ -170,14 +204,84 @@ class StepDetailsPage extends StatelessWidget {
     );
   }
 
+  void _showEditGoalDialog(BuildContext context) {
+    int tempGoal = _goalSteps;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Set Daily Goal'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _formatNumber(tempGoal),
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Slider(
+                value: tempGoal.toDouble(),
+                min: 1000,
+                max: 30000,
+                divisions: 29,
+                label: _formatNumber(tempGoal),
+                activeColor: AppColors.primary,
+                onChanged: (value) {
+                  setDialogState(() => tempGoal = value.toInt());
+                },
+              ),
+              Text(
+                '${_formatNumber(1000)} - ${_formatNumber(30000)} steps',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _saveGoal(tempGoal);
+                Navigator.pop(dialogContext);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveGoal(int newGoal) {
+    setState(() => _goalSteps = newGoal);
+
+    // Save to profile via ProfileBloc
+    if (widget.userProfile != null) {
+      final updatedProfile = ProfileModel.fromEntity(
+        widget.userProfile!,
+      ).copyWith(stepGoal: newGoal);
+      context.read<ProfileBloc>().add(UpdateProfile(profile: updatedProfile));
+    }
+  }
+
   Widget _buildStatsRow(int steps) {
     final calories = FitnessCalculator.getCaloriesBurned(
       steps,
-      profile: userProfile,
+      profile: widget.userProfile,
     ).toInt();
     final distanceKm = FitnessCalculator.getDistanceKm(
       steps,
-      profile: userProfile,
+      profile: widget.userProfile,
     );
     final distanceDisplay = FitnessCalculator.formatDistance(distanceKm);
     final activeMinutes = FitnessCalculator.getActiveMinutes(steps);
@@ -269,7 +373,7 @@ class StepDetailsPage extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
-          WeeklyChartWidget(goalSteps: goalSteps),
+          WeeklyChartWidget(goalSteps: _goalSteps),
         ],
       ),
     );
@@ -277,7 +381,7 @@ class StepDetailsPage extends StatelessWidget {
 
   String _formatNumber(int number) {
     if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}k'.replaceAll('.0k', 'k');
+      return '${(number / 1000).toStringAsFixed(2)}k';
     }
     return number.toString();
   }

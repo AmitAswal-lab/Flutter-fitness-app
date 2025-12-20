@@ -6,6 +6,7 @@ class UserProfile extends Equatable {
   final double? weightKg;
   final DateTime? dateOfBirth;
   final String? gender; // 'male', 'female', 'other'
+  final int stepGoal;
 
   const UserProfile({
     required this.userId,
@@ -13,6 +14,7 @@ class UserProfile extends Equatable {
     this.weightKg,
     this.dateOfBirth,
     this.gender,
+    this.stepGoal = 10000,
   });
 
   /// Calculate stride length based on height (walking formula)
@@ -48,5 +50,12 @@ class UserProfile extends Equatable {
       gender != null;
 
   @override
-  List<Object?> get props => [userId, heightCm, weightKg, dateOfBirth, gender];
+  List<Object?> get props => [
+    userId,
+    heightCm,
+    weightKg,
+    dateOfBirth,
+    gender,
+    stepGoal,
+  ];
 }

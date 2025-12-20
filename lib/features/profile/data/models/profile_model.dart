@@ -7,6 +7,7 @@ class ProfileModel extends UserProfile {
     super.weightKg,
     super.dateOfBirth,
     super.gender,
+    super.stepGoal,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +23,7 @@ class ProfileModel extends UserProfile {
           ? DateTime.parse(json['dateOfBirth'] as String)
           : null,
       gender: json['gender'] as String?,
+      stepGoal: json['stepGoal'] as int? ?? 10000,
     );
   }
 
@@ -32,6 +34,7 @@ class ProfileModel extends UserProfile {
       'weightKg': weightKg,
       'dateOfBirth': dateOfBirth?.toIso8601String(),
       'gender': gender,
+      'stepGoal': stepGoal,
     };
   }
 
@@ -42,6 +45,7 @@ class ProfileModel extends UserProfile {
       weightKg: weightKg,
       dateOfBirth: dateOfBirth,
       gender: gender,
+      stepGoal: stepGoal,
     );
   }
 
@@ -51,6 +55,7 @@ class ProfileModel extends UserProfile {
     double? weightKg,
     DateTime? dateOfBirth,
     String? gender,
+    int? stepGoal,
   }) {
     return ProfileModel(
       userId: userId ?? this.userId,
@@ -58,6 +63,7 @@ class ProfileModel extends UserProfile {
       weightKg: weightKg ?? this.weightKg,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
+      stepGoal: stepGoal ?? this.stepGoal,
     );
   }
 
@@ -68,6 +74,7 @@ class ProfileModel extends UserProfile {
       weightKg: entity.weightKg,
       dateOfBirth: entity.dateOfBirth,
       gender: entity.gender,
+      stepGoal: entity.stepGoal,
     );
   }
 }

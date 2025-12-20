@@ -1,15 +1,17 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/features/profile/domain/entities/user_profile.dart';
+import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/pages/step_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StepCounterCard extends StatelessWidget {
-  final int goalSteps;
   final UserProfile? userProfile;
 
-  const StepCounterCard({super.key, this.goalSteps = 10000, this.userProfile});
+  const StepCounterCard({super.key, this.userProfile});
+
+  int get goalSteps => userProfile?.stepGoal ?? 10000;
 
   @override
   Widget build(BuildContext context) {
@@ -149,12 +151,12 @@ class StepCounterCard extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<StepsBloc>(),
-          child: StepDetailsPage(
-            userProfile: userProfile,
-            goalSteps: goalSteps,
-          ),
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<StepsBloc>()),
+            BlocProvider.value(value: context.read<ProfileBloc>()),
+          ],
+          child: StepDetailsPage(userProfile: userProfile),
         ),
       ),
     );
@@ -162,7 +164,7 @@ class StepCounterCard extends StatelessWidget {
 
   String _formatNumber(int number) {
     if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}k'.replaceAll('.0k', 'k');
+      return '${(number / 1000).toStringAsFixed(2)}k';
     }
     return number.toString();
   }
