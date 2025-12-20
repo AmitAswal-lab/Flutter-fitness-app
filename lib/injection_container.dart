@@ -23,6 +23,9 @@ import 'package:fitness_app/features/steps/domain/usecases/get_daily_steps.dart'
 import 'package:fitness_app/features/steps/domain/usecases/get_step_stream.dart';
 import 'package:fitness_app/features/steps/domain/usecases/get_weekly_steps.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
+import 'package:fitness_app/features/workout/data/repositories/workout_repository_impl.dart';
+import 'package:fitness_app/features/workout/domain/repositories/workout_repository.dart';
+import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,4 +108,13 @@ Future<void> init({bool isSimulator = false}) async {
 
   // Bloc
   sl.registerFactory(() => ProfileBloc(getProfile: sl(), saveProfile: sl()));
+
+  //=== Workout Feature ===
+  // Repositories
+  sl.registerLazySingleton<WorkoutRepository>(
+    () => WorkoutRepositoryImpl(sharedPreferences: sl()),
+  );
+
+  // Bloc
+  sl.registerFactory(() => WorkoutBloc(repository: sl()));
 }

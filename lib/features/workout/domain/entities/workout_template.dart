@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:fitness_app/features/workout/domain/entities/exercise.dart';
 
-/// Represents a workout template with a list of exercises
 class WorkoutTemplate extends Equatable {
   final String id;
   final String name;

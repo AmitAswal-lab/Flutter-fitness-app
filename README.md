@@ -48,10 +48,10 @@ lib/
 │   │   ├── domain/
 │   │   └── presentation/    # StepCounterCard, StepDetailsPage, WeeklyChart
 │   │
-│   ├── workout/             # Workout feature (NEW)
+│   ├── workout/             # Workout feature
 │   │   ├── data/            # Models, Sample data, RepositoryImpl
 │   │   ├── domain/          # Exercise, WorkoutTemplate, WorkoutSession
-│   │   └── presentation/    # (Coming soon)
+│   │   └── presentation/    # WorkoutBloc, LibraryPage, DetailPage
 │   │
 │   └── dashboard/           # Homepage
 │

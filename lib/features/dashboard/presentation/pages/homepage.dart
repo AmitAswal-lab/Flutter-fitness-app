@@ -6,6 +6,8 @@ import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart
 import 'package:fitness_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/widgets/step_counter_card.dart';
+import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
+import 'package:fitness_app/features/workout/presentation/pages/workout_library_page.dart';
 import 'package:fitness_app/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -100,6 +102,7 @@ class _HomepageState extends State<Homepage> {
           create: (context) =>
               sl<ProfileBloc>()..add(LoadProfile(userId: userId)),
         ),
+        BlocProvider(create: (context) => sl<WorkoutBloc>()),
       ],
       child: _HomeContent(userId: userId),
     );
@@ -146,9 +149,96 @@ class _HomeContent extends StatelessWidget {
             }
 
             return SingleChildScrollView(
-              child: Column(children: [StepCounterCard(userProfile: profile)]),
+              child: Column(
+                children: [
+                  StepCounterCard(userProfile: profile),
+                  _buildWorkoutCard(context),
+                ],
+              ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkoutCard(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () => _navigateToWorkouts(context),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.fitness_center,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Workouts',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Browse workout library',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.white70,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToWorkouts(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<WorkoutBloc>(),
+          child: const WorkoutLibraryPage(),
         ),
       ),
     );

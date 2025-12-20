@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Represents an exercise that can be performed in a workout
 class Exercise extends Equatable {
   final String id;
   final String name;
