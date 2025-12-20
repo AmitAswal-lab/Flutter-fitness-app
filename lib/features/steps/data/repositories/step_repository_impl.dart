@@ -37,8 +37,17 @@ class StepRepositoryImpl implements StepsRepository {
   Future<StepRecord> getDailySteps(String userId) async {
     final savedSteps = await stepLocalDatasource.getLastSavedSteps(userId);
 
-    if (savedSteps != null && _isToday(savedSteps.timestamp)) {
-      return savedSteps;
+    if (savedSteps != null) {
+      if (_isToday(savedSteps.timestamp)) {
+        return savedSteps;
+      } else {
+        // Archive yesterday's steps before starting new day
+        await stepLocalDatasource.saveDailyTotal(
+          userId,
+          savedSteps.timestamp,
+          savedSteps.steps,
+        );
+      }
     }
 
     return StepRecord(steps: 0, timestamp: DateTime.now());

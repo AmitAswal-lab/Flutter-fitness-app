@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract class StepLocalDatasource {
   Future<void> cacheDailySteps(String userId, StepModel step);
   Future<StepModel?> getLastSavedSteps(String userId);
+  Future<void> saveDailyTotal(String userId, DateTime date, int steps);
   Future<List<StepModel>> getweeklyHistory(String userId);
 }
 
@@ -16,6 +17,10 @@ class StepLocalDatasourceImpl implements StepLocalDatasource {
 
   String _cachedStepsKey(String userId) => 'cached_steps_$userId';
   String _historyKey(String userId) => 'steps_history_$userId';
+
+  /// Format date as YYYY-MM-DD for consistent key
+  String _dateKey(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   @override
   Future<void> cacheDailySteps(String userId, StepModel stepModel) {
@@ -35,7 +40,54 @@ class StepLocalDatasourceImpl implements StepLocalDatasource {
   }
 
   @override
+  Future<void> saveDailyTotal(String userId, DateTime date, int steps) async {
+    final historyJson = sharedPreferences.getString(_historyKey(userId));
+    Map<String, dynamic> history = {};
+
+    if (historyJson != null) {
+      history = json.decode(historyJson) as Map<String, dynamic>;
+    }
+
+    // Save/update the date's total
+    history[_dateKey(date)] = steps;
+
+    // Keep only last 14 days to prevent unbounded growth
+    final cutoff = DateTime.now().subtract(const Duration(days: 14));
+    history.removeWhere((key, _) {
+      try {
+        return DateTime.parse(key).isBefore(cutoff);
+      } catch (_) {
+        return true;
+      }
+    });
+
+    await sharedPreferences.setString(
+      _historyKey(userId),
+      json.encode(history),
+    );
+  }
+
+  @override
   Future<List<StepModel>> getweeklyHistory(String userId) async {
-    return [];
+    final historyJson = sharedPreferences.getString(_historyKey(userId));
+    if (historyJson == null) return [];
+
+    final history = json.decode(historyJson) as Map<String, dynamic>;
+    final now = DateTime.now();
+    final List<StepModel> result = [];
+
+    // Get last 7 days
+    for (int i = 6; i >= 0; i--) {
+      final date = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: i));
+      final key = _dateKey(date);
+      final steps = history[key] as int? ?? 0;
+      result.add(StepModel(steps: steps, timestamp: date));
+    }
+
+    return result;
   }
 }
