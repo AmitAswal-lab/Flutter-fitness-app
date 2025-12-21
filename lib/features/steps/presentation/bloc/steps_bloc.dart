@@ -8,7 +8,6 @@ part 'steps_state.dart';
 
 class StepsBloc extends Bloc<StepsEvent, StepsState> {
   final GetStepStream getStepStream;
-  String? _currentUserId;
 
   StepsBloc({required this.getStepStream}) : super(StepsInitial()) {
     on<WatchStepsSpeed>(_watchStepsSpeed);
@@ -19,7 +18,6 @@ class StepsBloc extends Bloc<StepsEvent, StepsState> {
     WatchStepsSpeed event,
     Emitter<StepsState> emit,
   ) async {
-    _currentUserId = event.userId;
     emit(StepsLoading());
     try {
       await emit.forEach(
@@ -37,7 +35,6 @@ class StepsBloc extends Bloc<StepsEvent, StepsState> {
     RefreshSteps event,
     Emitter<StepsState> emit,
   ) async {
-    _currentUserId = event.userId;
     // Restart the stream to pick up latest saved data
     try {
       await emit.forEach(

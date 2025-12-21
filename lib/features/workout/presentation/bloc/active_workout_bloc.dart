@@ -91,10 +91,12 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     );
 
     final updatedSets = [...current.completedSets, newSet];
+    final isLastSetOfExercise = current.currentSetIndex + 1 >= exercise.sets;
+    final hasMoreExercises =
+        current.currentExerciseIndex + 1 < current.template.exercises.length;
 
-    // Check if more sets remain for this exercise
-    if (current.currentSetIndex + 1 < exercise.sets) {
-      // Start rest period
+    if (!isLastSetOfExercise) {
+      // More sets remain - start rest and increment set index
       add(StartRest(seconds: exercise.restSeconds));
       emit(
         current.copyWith(
@@ -102,18 +104,20 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
           completedSets: updatedSets,
         ),
       );
-    } else if (current.currentExerciseIndex + 1 <
-        current.template.exercises.length) {
-      // Move to next exercise
+    } else if (hasMoreExercises) {
+      // Last set of exercise, but more exercises remain
+      // Start rest period first, THEN move to next exercise after rest
+      add(StartRest(seconds: exercise.restSeconds));
       emit(
         current.copyWith(
-          currentExerciseIndex: current.currentExerciseIndex + 1,
-          currentSetIndex: 0,
+          currentSetIndex: current.currentSetIndex + 1, // Mark this set as done
           completedSets: updatedSets,
+          pendingNextExercise: true, // Flag to move after rest
         ),
       );
     } else {
-      // Workout complete!
+      // Last set of last exercise - workout complete!
+      emit(current.copyWith(completedSets: updatedSets));
       add(const FinishWorkout());
     }
   }
@@ -133,7 +137,21 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     final current = state as ActiveWorkoutInProgress;
 
     _restSecondsRemaining = 0;
-    emit(current.copyWith(isResting: false, restSecondsRemaining: 0));
+
+    // If pending next exercise, move to it now
+    if (current.pendingNextExercise) {
+      emit(
+        current.copyWith(
+          isResting: false,
+          restSecondsRemaining: 0,
+          currentExerciseIndex: current.currentExerciseIndex + 1,
+          currentSetIndex: 0,
+          pendingNextExercise: false,
+        ),
+      );
+    } else {
+      emit(current.copyWith(isResting: false, restSecondsRemaining: 0));
+    }
   }
 
   void _onTimerTick(TimerTick event, Emitter<ActiveWorkoutState> emit) {
@@ -147,13 +165,29 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     if (current.isResting && _restSecondsRemaining > 0) {
       _restSecondsRemaining--;
       if (_restSecondsRemaining == 0) {
-        emit(
-          current.copyWith(
-            elapsedSeconds: _elapsedSeconds,
-            isResting: false,
-            restSecondsRemaining: 0,
-          ),
-        );
+        // Rest complete
+        if (current.pendingNextExercise) {
+          // Move to next exercise
+          emit(
+            current.copyWith(
+              elapsedSeconds: _elapsedSeconds,
+              isResting: false,
+              restSecondsRemaining: 0,
+              currentExerciseIndex: current.currentExerciseIndex + 1,
+              currentSetIndex: 0,
+              pendingNextExercise: false,
+            ),
+          );
+        } else {
+          // Just end rest, stay on current exercise
+          emit(
+            current.copyWith(
+              elapsedSeconds: _elapsedSeconds,
+              isResting: false,
+              restSecondsRemaining: 0,
+            ),
+          );
+        }
       } else {
         emit(
           current.copyWith(

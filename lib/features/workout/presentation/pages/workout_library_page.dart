@@ -178,21 +178,21 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Flexible(
+                  Expanded(
                     child: _buildInfoChip(
                       Icons.timer,
                       '${workout.estimatedMinutes}m',
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: _buildInfoChip(
                       Icons.fitness_center,
                       '${workout.exercises.length} ex',
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(child: _buildDifficultyChip(workout.difficulty)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildDifficultyChip(workout.difficulty)),
                 ],
               ),
             ],
@@ -204,24 +204,21 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
 
   Widget _buildInfoChip(IconData icon, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.chipBackground,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
-              overflow: TextOverflow.ellipsis,
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -244,21 +241,21 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(difficulty.icon, style: const TextStyle(fontSize: 11)),
-          const SizedBox(width: 3),
+          Text(difficulty.icon, style: const TextStyle(fontSize: 12)),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               difficulty.displayName,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),

@@ -219,12 +219,12 @@ class SampleWorkoutData {
       exercises: [
         WorkoutExercise(
           exercise: getExerciseById('bench_press'),
-          sets: 4,
+          sets: 3,
           reps: 8,
         ),
         WorkoutExercise(
           exercise: getExerciseById('bent_over_row'),
-          sets: 4,
+          sets: 3,
           reps: 10,
         ),
         WorkoutExercise(
@@ -275,19 +275,19 @@ class SampleWorkoutData {
       exercises: [
         WorkoutExercise(
           exercise: getExerciseById('burpees'),
-          sets: 4,
+          sets: 3,
           reps: 15,
           restSeconds: 30,
         ),
         WorkoutExercise(
           exercise: getExerciseById('mountain_climbers'),
-          sets: 4,
+          sets: 3,
           durationSeconds: 45,
           restSeconds: 15,
         ),
         WorkoutExercise(
           exercise: getExerciseById('jumping_jacks'),
-          sets: 4,
+          sets: 3,
           durationSeconds: 60,
           restSeconds: 15,
         ),

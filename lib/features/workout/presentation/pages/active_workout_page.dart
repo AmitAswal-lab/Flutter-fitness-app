@@ -251,11 +251,16 @@ class _ActiveWorkoutView extends StatelessWidget {
   Widget _buildSetCounter(ActiveWorkoutInProgress state) {
     final exercise = state.currentExercise;
 
+    // Count completed sets for the CURRENT exercise only
+    final completedSetsForExercise = state.completedSets
+        .where((s) => s.exerciseId == exercise.exercise.id)
+        .length;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(exercise.sets, (index) {
-        final isCompleted = index < state.currentSetIndex;
-        final isCurrent = index == state.currentSetIndex;
+        final isCompleted = index < completedSetsForExercise;
+        final isCurrent = index == completedSetsForExercise;
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -355,6 +360,25 @@ class _ActiveWorkoutView extends StatelessWidget {
   }
 
   Widget _buildControls(BuildContext context, ActiveWorkoutInProgress state) {
+    // Calculate current set number (1-based) for this exercise
+    final exercise = state.currentExercise;
+    final completedSetsForExercise = state.completedSets
+        .where((s) => s.exerciseId == exercise.exercise.id)
+        .length;
+    final currentSetNumber = completedSetsForExercise + 1;
+    final totalSets = exercise.sets;
+    final isLastSet = currentSetNumber == totalSets;
+    final isLastExercise =
+        state.currentExerciseIndex == state.totalExercises - 1;
+
+    // Determine button text
+    String buttonText;
+    if (currentSetNumber > totalSets) {
+      buttonText = isLastExercise ? 'Finish Workout' : 'Next Exercise';
+    } else {
+      buttonText = 'Complete Set $currentSetNumber of $totalSets';
+    }
+
     return Column(
       children: [
         // Complete set button
@@ -377,14 +401,20 @@ class _ActiveWorkoutView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check, size: 28),
-                SizedBox(width: 12),
+                Icon(
+                  isLastSet && isLastExercise ? Icons.flag : Icons.check,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
                 Text(
-                  'Complete Set',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  buttonText,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),

@@ -13,19 +13,6 @@ class StepRepositoryImpl implements StepsRepository {
     required this.pedometerDatasource,
   });
 
-  int _stepsAtSessionStart = 0;
-  bool _isFirstEvent = true;
-  String? _currentUserId;
-
-  /// Reset session state when user changes
-  void _resetSessionIfNeeded(String userId) {
-    if (_currentUserId != userId) {
-      _stepsAtSessionStart = 0;
-      _isFirstEvent = true;
-      _currentUserId = userId;
-    }
-  }
-
   bool _isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year &&
@@ -55,34 +42,90 @@ class StepRepositoryImpl implements StepsRepository {
 
   @override
   Stream<StepRecord> getStepStream(String userId) async* {
-    // Reset session if user changed
-    _resetSessionIfNeeded(userId);
+    // Load saved state
+    final savedData = await stepLocalDatasource.getLastSavedSteps(userId);
 
-    StepRecord currentDailyCount = await getDailySteps(userId);
-    int initialSavedSteps = currentDailyCount.steps;
+    int savedSteps = 0;
+    int? lastSavedPedometerValue;
 
-    yield currentDailyCount;
+    if (savedData != null && _isToday(savedData.timestamp)) {
+      savedSteps = savedData.steps;
+      lastSavedPedometerValue = savedData.lastPedometerValue;
+    }
 
-    //Listen to the raw sensor stream
+    // Yield initial saved value
+    yield StepRecord(steps: savedSteps, timestamp: DateTime.now());
+
+    bool isFirstEvent = true;
+    int sessionBaseline = 0;
+
+    // Listen to the raw sensor stream
     await for (final sensorEvent in pedometerDatasource.getStepStream()) {
-      if (_isFirstEvent) {
-        _stepsAtSessionStart = sensorEvent.steps;
-        _isFirstEvent = false;
+      final currentPedometerValue = sensorEvent.steps;
+
+      if (isFirstEvent) {
+        isFirstEvent = false;
+
+        // If we have a saved pedometer value from before, calculate background steps
+        if (lastSavedPedometerValue != null) {
+          int backgroundSteps = currentPedometerValue - lastSavedPedometerValue;
+
+          // Sanity check: if negative (pedometer reset) or unreasonably large, ignore
+          if (backgroundSteps < 0 || backgroundSteps > 50000) {
+            backgroundSteps = 0;
+          }
+
+          // Add background steps to saved steps
+          savedSteps += backgroundSteps;
+        }
+
+        // Set baseline for this session
+        sessionBaseline = currentPedometerValue;
+
+        // Yield the updated total (saved + background steps)
+        final updatedRecord = StepRecord(
+          steps: savedSteps,
+          timestamp: DateTime.now(),
+        );
+
+        await stepLocalDatasource.cacheDailySteps(
+          userId,
+          StepModel(
+            steps: savedSteps,
+            timestamp: updatedRecord.timestamp,
+            lastPedometerValue: currentPedometerValue,
+          ),
+        );
+
+        yield updatedRecord;
+        continue;
       }
 
-      int stepsWalkedThisSession = sensorEvent.steps - _stepsAtSessionStart;
+      // Calculate steps walked in this active session
+      int sessionSteps = currentPedometerValue - sessionBaseline;
 
-      int totalStepsToday = initialSavedSteps + stepsWalkedThisSession;
+      // Sanity check for negative values (pedometer reset mid-session)
+      if (sessionSteps < 0) {
+        sessionBaseline = currentPedometerValue;
+        sessionSteps = 0;
+      }
+
+      // Total = saved steps + session steps
+      int totalStepsToday = savedSteps + sessionSteps;
 
       final updatedRecord = StepRecord(
         steps: totalStepsToday,
         timestamp: DateTime.now(),
       );
 
-      // Save the updated step count to local storage
+      // Save with current pedometer value for future background calculation
       await stepLocalDatasource.cacheDailySteps(
         userId,
-        StepModel(steps: totalStepsToday, timestamp: updatedRecord.timestamp),
+        StepModel(
+          steps: totalStepsToday,
+          timestamp: updatedRecord.timestamp,
+          lastPedometerValue: currentPedometerValue,
+        ),
       );
 
       yield updatedRecord;
