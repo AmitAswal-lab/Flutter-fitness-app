@@ -8,6 +8,7 @@ class ProfileModel extends UserProfile {
     super.dateOfBirth,
     super.gender,
     super.stepGoal,
+    super.fitnessLevel,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +25,9 @@ class ProfileModel extends UserProfile {
           : null,
       gender: json['gender'] as String?,
       stepGoal: json['stepGoal'] as int? ?? 10000,
+      fitnessLevel: json['fitnessLevel'] != null
+          ? FitnessLevel.fromId(json['fitnessLevel'] as String)
+          : null,
     );
   }
 
@@ -35,6 +39,7 @@ class ProfileModel extends UserProfile {
       'dateOfBirth': dateOfBirth?.toIso8601String(),
       'gender': gender,
       'stepGoal': stepGoal,
+      'fitnessLevel': fitnessLevel?.id,
     };
   }
 
@@ -46,6 +51,7 @@ class ProfileModel extends UserProfile {
       dateOfBirth: dateOfBirth,
       gender: gender,
       stepGoal: stepGoal,
+      fitnessLevel: fitnessLevel,
     );
   }
 
@@ -56,6 +62,7 @@ class ProfileModel extends UserProfile {
     DateTime? dateOfBirth,
     String? gender,
     int? stepGoal,
+    FitnessLevel? fitnessLevel,
   }) {
     return ProfileModel(
       userId: userId ?? this.userId,
@@ -64,6 +71,7 @@ class ProfileModel extends UserProfile {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
       stepGoal: stepGoal ?? this.stepGoal,
+      fitnessLevel: fitnessLevel ?? this.fitnessLevel,
     );
   }
 
@@ -75,6 +83,7 @@ class ProfileModel extends UserProfile {
       dateOfBirth: entity.dateOfBirth,
       gender: entity.gender,
       stepGoal: entity.stepGoal,
+      fitnessLevel: entity.fitnessLevel,
     );
   }
 }

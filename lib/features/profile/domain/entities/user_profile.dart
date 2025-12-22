@@ -1,5 +1,40 @@
 import 'package:equatable/equatable.dart';
 
+enum FitnessLevel {
+  beginner,
+  intermediate,
+  advanced;
+
+  String get displayName {
+    switch (this) {
+      case FitnessLevel.beginner:
+        return 'Noob';
+      case FitnessLevel.intermediate:
+        return 'Master';
+      case FitnessLevel.advanced:
+        return 'Elite';
+    }
+  }
+
+  String get id {
+    switch (this) {
+      case FitnessLevel.beginner:
+        return 'beginner';
+      case FitnessLevel.intermediate:
+        return 'intermediate';
+      case FitnessLevel.advanced:
+        return 'advanced';
+    }
+  }
+
+  static FitnessLevel fromId(String id) {
+    return FitnessLevel.values.firstWhere(
+      (e) => e.id == id,
+      orElse: () => FitnessLevel.beginner,
+    );
+  }
+}
+
 class UserProfile extends Equatable {
   final String userId;
   final double? heightCm;
@@ -7,6 +42,7 @@ class UserProfile extends Equatable {
   final DateTime? dateOfBirth;
   final String? gender; // 'male', 'female', 'other'
   final int stepGoal;
+  final FitnessLevel? fitnessLevel;
 
   const UserProfile({
     required this.userId,
@@ -15,6 +51,7 @@ class UserProfile extends Equatable {
     this.dateOfBirth,
     this.gender,
     this.stepGoal = 10000,
+    this.fitnessLevel,
   });
 
   /// Calculate stride length based on height (walking formula)
@@ -47,7 +84,8 @@ class UserProfile extends Equatable {
       heightCm != null &&
       weightKg != null &&
       dateOfBirth != null &&
-      gender != null;
+      gender != null &&
+      fitnessLevel != null;
 
   @override
   List<Object?> get props => [
@@ -57,5 +95,6 @@ class UserProfile extends Equatable {
     dateOfBirth,
     gender,
     stepGoal,
+    fitnessLevel,
   ];
 }

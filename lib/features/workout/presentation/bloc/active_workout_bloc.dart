@@ -16,6 +16,8 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     on<StartWorkout>(_onStartWorkout);
     on<NextExercise>(_onNextExercise);
     on<PreviousExercise>(_onPreviousExercise);
+    on<StartSet>(_onStartSet);
+    on<AdjustRestTime>(_onAdjustRestTime);
     on<CompleteSet>(_onCompleteSet);
     on<StartRest>(_onStartRest);
     on<SkipRest>(_onSkipRest);
@@ -76,6 +78,29 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
     }
   }
 
+  void _onStartSet(StartSet event, Emitter<ActiveWorkoutState> emit) {
+    if (state is! ActiveWorkoutInProgress) return;
+    final current = state as ActiveWorkoutInProgress;
+
+    // Transition to "doing exercise" mode
+    emit(current.copyWith(isDoingExercise: true, isResting: false));
+  }
+
+  void _onAdjustRestTime(
+    AdjustRestTime event,
+    Emitter<ActiveWorkoutState> emit,
+  ) {
+    if (state is! ActiveWorkoutInProgress) return;
+    final current = state as ActiveWorkoutInProgress;
+
+    final newRestTime = (_restSecondsRemaining + event.deltaSeconds).clamp(
+      0,
+      300,
+    );
+    _restSecondsRemaining = newRestTime;
+    emit(current.copyWith(restSecondsRemaining: newRestTime));
+  }
+
   void _onCompleteSet(CompleteSet event, Emitter<ActiveWorkoutState> emit) {
     if (state is! ActiveWorkoutInProgress) return;
     final current = state as ActiveWorkoutInProgress;
@@ -102,6 +127,7 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
         current.copyWith(
           currentSetIndex: current.currentSetIndex + 1,
           completedSets: updatedSets,
+          isDoingExercise: false,
         ),
       );
     } else if (hasMoreExercises) {
@@ -110,9 +136,10 @@ class ActiveWorkoutBloc extends Bloc<ActiveWorkoutEvent, ActiveWorkoutState> {
       add(StartRest(seconds: exercise.restSeconds));
       emit(
         current.copyWith(
-          currentSetIndex: current.currentSetIndex + 1, // Mark this set as done
+          currentSetIndex: current.currentSetIndex + 1,
           completedSets: updatedSets,
-          pendingNextExercise: true, // Flag to move after rest
+          pendingNextExercise: true,
+          isDoingExercise: false,
         ),
       );
     } else {

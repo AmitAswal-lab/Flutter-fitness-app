@@ -179,6 +179,7 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
               Row(
                 children: [
                   Expanded(
+                    flex: 3,
                     child: _buildInfoChip(
                       Icons.timer,
                       '${workout.estimatedMinutes}m',
@@ -186,13 +187,17 @@ class _WorkoutLibraryPageState extends State<WorkoutLibraryPage> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
+                    flex: 3,
                     child: _buildInfoChip(
                       Icons.fitness_center,
                       '${workout.exercises.length} ex',
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildDifficultyChip(workout.difficulty)),
+                  Expanded(
+                    flex: 4,
+                    child: _buildDifficultyChip(workout.difficulty),
+                  ),
                 ],
               ),
             ],

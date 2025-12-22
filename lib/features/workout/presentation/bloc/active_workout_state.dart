@@ -20,6 +20,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
   final int restSecondsRemaining;
   final bool isPaused;
   final bool pendingNextExercise;
+  final bool isDoingExercise;
 
   const ActiveWorkoutInProgress({
     required this.template,
@@ -32,6 +33,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
     required this.restSecondsRemaining,
     required this.isPaused,
     this.pendingNextExercise = false,
+    this.isDoingExercise = false,
   });
 
   WorkoutExercise get currentExercise =>
@@ -60,6 +62,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
     int? restSecondsRemaining,
     bool? isPaused,
     bool? pendingNextExercise,
+    bool? isDoingExercise,
   }) {
     return ActiveWorkoutInProgress(
       template: template,
@@ -72,6 +75,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
       restSecondsRemaining: restSecondsRemaining ?? this.restSecondsRemaining,
       isPaused: isPaused ?? this.isPaused,
       pendingNextExercise: pendingNextExercise ?? this.pendingNextExercise,
+      isDoingExercise: isDoingExercise ?? this.isDoingExercise,
     );
   }
 
@@ -85,6 +89,7 @@ class ActiveWorkoutInProgress extends ActiveWorkoutState {
     restSecondsRemaining,
     isPaused,
     pendingNextExercise,
+    isDoingExercise,
   ];
 }
 

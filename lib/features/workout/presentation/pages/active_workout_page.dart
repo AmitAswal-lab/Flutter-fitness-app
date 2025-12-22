@@ -30,8 +30,25 @@ class ActiveWorkoutPage extends StatelessWidget {
   }
 }
 
-class _ActiveWorkoutView extends StatelessWidget {
+class _ActiveWorkoutView extends StatefulWidget {
   const _ActiveWorkoutView();
+
+  @override
+  State<_ActiveWorkoutView> createState() => _ActiveWorkoutViewState();
+}
+
+class _ActiveWorkoutViewState extends State<_ActiveWorkoutView> {
+  bool _showCelebration = false;
+  int _lastCompletedSetCount = 0;
+
+  void _triggerCelebration() {
+    setState(() => _showCelebration = true);
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) {
+        setState(() => _showCelebration = false);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +57,60 @@ class _ActiveWorkoutView extends StatelessWidget {
         if (state is ActiveWorkoutCompleted) {
           _showCompletionDialog(context, state);
         }
+        // Trigger celebration when a set is completed
+        if (state is ActiveWorkoutInProgress) {
+          final currentSetCount = state.completedSets.length;
+          if (currentSetCount > _lastCompletedSetCount && !state.isResting) {
+            _triggerCelebration();
+          }
+          _lastCompletedSetCount = currentSetCount;
+        }
       },
       builder: (context, state) {
         if (state is ActiveWorkoutInProgress) {
-          return _buildWorkoutScreen(context, state);
+          return Stack(
+            children: [
+              _buildWorkoutScreen(context, state),
+              if (_showCelebration) _buildCelebrationOverlay(),
+            ],
+          );
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
+    );
+  }
+
+  Widget _buildCelebrationOverlay() {
+    return AnimatedOpacity(
+      opacity: _showCelebration ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: AppColors.success,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 80),
+                SizedBox(height: 16),
+                Text(
+                  'Set Complete!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -117,13 +181,41 @@ class _ActiveWorkoutView extends StatelessWidget {
               style: TextStyle(color: AppColors.white70, fontSize: 24),
             ),
             const SizedBox(height: 16),
-            Text(
-              state.formattedRestTime,
-              style: const TextStyle(
-                color: AppColors.white,
-                fontSize: 80,
-                fontWeight: FontWeight.bold,
-              ),
+            // Timer with +/- buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    context.read<ActiveWorkoutBloc>().add(
+                      const AdjustRestTime(deltaSeconds: -15),
+                    );
+                  },
+                  icon: const Icon(Icons.remove_circle_outline),
+                  color: AppColors.white,
+                  iconSize: 40,
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  state.formattedRestTime,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  onPressed: () {
+                    context.read<ActiveWorkoutBloc>().add(
+                      const AdjustRestTime(deltaSeconds: 15),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle_outline),
+                  color: AppColors.white,
+                  iconSize: 40,
+                ),
+              ],
             ),
             const SizedBox(height: 48),
             ElevatedButton.icon(
@@ -371,17 +463,50 @@ class _ActiveWorkoutView extends StatelessWidget {
     final isLastExercise =
         state.currentExerciseIndex == state.totalExercises - 1;
 
-    // Determine button text
-    String buttonText;
-    if (currentSetNumber > totalSets) {
-      buttonText = isLastExercise ? 'Finish Workout' : 'Next Exercise';
-    } else {
-      buttonText = 'Complete Set $currentSetNumber of $totalSets';
+    // Determine button based on state
+    if (!state.isDoingExercise) {
+      // Show "Start Set" button
+      return Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<ActiveWorkoutBloc>().add(const StartSet());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.play_arrow_rounded, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Start Set $currentSetNumber of $totalSets',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildNavigationRow(context, state),
+        ],
+      );
     }
 
+    // User is doing exercise - show "Done" button
     return Column(
       children: [
-        // Complete set button
         SizedBox(
           width: double.infinity,
           height: 60,
@@ -389,8 +514,8 @@ class _ActiveWorkoutView extends StatelessWidget {
             onPressed: () {
               context.read<ActiveWorkoutBloc>().add(
                 CompleteSet(
-                  reps: state.currentExercise.reps,
-                  durationSeconds: state.currentExercise.durationSeconds,
+                  reps: exercise.reps,
+                  durationSeconds: exercise.durationSeconds,
                 ),
               );
             },
@@ -410,7 +535,9 @@ class _ActiveWorkoutView extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  buttonText,
+                  isLastSet && isLastExercise
+                      ? 'Finish Workout'
+                      : 'Done with Set $currentSetNumber',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -421,41 +548,54 @@ class _ActiveWorkoutView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // Show set indicator - "Set X of Y"
+        Text(
+          'Set $currentSetNumber of $totalSets',
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
 
-        // Navigation row
-        Row(
-          children: [
-            Expanded(
-              child: TextButton.icon(
-                onPressed: state.currentExerciseIndex > 0
-                    ? () => context.read<ActiveWorkoutBloc>().add(
-                        const PreviousExercise(),
-                      )
-                    : null,
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Previous'),
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                context.read<ActiveWorkoutBloc>().add(const PauseWorkout());
-              },
-              icon: const Icon(Icons.pause_circle_outline),
-              iconSize: 40,
-              color: AppColors.textSecondary,
-            ),
-            Expanded(
-              child: TextButton.icon(
-                onPressed: state.currentExerciseIndex < state.totalExercises - 1
-                    ? () => context.read<ActiveWorkoutBloc>().add(
-                        const NextExercise(),
-                      )
-                    : null,
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Skip'),
-              ),
-            ),
-          ],
+  Widget _buildNavigationRow(
+    BuildContext context,
+    ActiveWorkoutInProgress state,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton.icon(
+            onPressed: state.currentExerciseIndex > 0
+                ? () => context.read<ActiveWorkoutBloc>().add(
+                    const PreviousExercise(),
+                  )
+                : null,
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('Previous'),
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            context.read<ActiveWorkoutBloc>().add(const PauseWorkout());
+          },
+          icon: const Icon(Icons.pause_circle_outline),
+          iconSize: 40,
+          color: AppColors.textSecondary,
+        ),
+        Expanded(
+          child: TextButton.icon(
+            onPressed: state.currentExerciseIndex < state.totalExercises - 1
+                ? () => context.read<ActiveWorkoutBloc>().add(
+                    const NextExercise(),
+                  )
+                : null,
+            icon: const Icon(Icons.arrow_forward),
+            label: const Text('Skip'),
+          ),
         ),
       ],
     );

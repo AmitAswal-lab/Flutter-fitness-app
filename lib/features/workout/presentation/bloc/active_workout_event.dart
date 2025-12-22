@@ -25,6 +25,19 @@ class PreviousExercise extends ActiveWorkoutEvent {
   const PreviousExercise();
 }
 
+class StartSet extends ActiveWorkoutEvent {
+  const StartSet();
+}
+
+class AdjustRestTime extends ActiveWorkoutEvent {
+  final int deltaSeconds; // positive to add, negative to subtract
+
+  const AdjustRestTime({required this.deltaSeconds});
+
+  @override
+  List<Object?> get props => [deltaSeconds];
+}
+
 class CompleteSet extends ActiveWorkoutEvent {
   final double? weight;
   final int? reps;

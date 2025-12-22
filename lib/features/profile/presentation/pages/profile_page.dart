@@ -18,6 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _weightController = TextEditingController();
   DateTime? _selectedDate;
   String? _selectedGender;
+  FitnessLevel? _selectedFitnessLevel;
 
   final List<String> _genderOptions = ['male', 'female', 'other'];
 
@@ -50,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
     _selectedDate = profile.dateOfBirth;
     _selectedGender = profile.gender;
+    _selectedFitnessLevel = profile.fitnessLevel;
   }
 
   void _saveProfile() {
@@ -62,6 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
           weightKg: double.tryParse(_weightController.text),
           dateOfBirth: _selectedDate,
           gender: _selectedGender,
+          fitnessLevel: _selectedFitnessLevel,
         );
         context.read<ProfileBloc>().add(UpdateProfile(profile: profile));
       }
@@ -259,6 +262,27 @@ class _ProfilePageState extends State<ProfilePage> {
                       });
                     },
                   ),
+                  const SizedBox(height: 32),
+
+                  // Fitness Level Section
+                  const Text(
+                    'Fitness Level',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'This affects workout difficulty recommendations',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFitnessLevelSelector(),
                   const SizedBox(height: 40),
 
                   // Save Button
@@ -296,6 +320,73 @@ class _ProfilePageState extends State<ProfilePage> {
         },
       ),
     );
+  }
+
+  Widget _buildFitnessLevelSelector() {
+    return Row(
+      children: FitnessLevel.values.map((level) {
+        final isSelected = _selectedFitnessLevel == level;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFitnessLevel = level;
+              });
+            },
+            child: Container(
+              margin: EdgeInsets.only(
+                right: level != FitnessLevel.advanced ? 8 : 0,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary.withValues(alpha: 0.2),
+                  width: isSelected ? 2 : 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _getFitnessLevelIcon(level),
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    level.displayName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  String _getFitnessLevelIcon(FitnessLevel level) {
+    switch (level) {
+      case FitnessLevel.beginner:
+        return '🌱';
+      case FitnessLevel.intermediate:
+        return '🌿';
+      case FitnessLevel.advanced:
+        return '🌳';
+    }
   }
 
   Widget _buildTextField({
