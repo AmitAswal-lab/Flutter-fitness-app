@@ -14,6 +14,7 @@ import 'package:fitness_app/features/profile/domain/repositories/profile_reposit
 import 'package:fitness_app/features/profile/domain/usecases/get_profile.dart';
 import 'package:fitness_app/features/profile/domain/usecases/save_profile.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:fitness_app/features/steps/data/datasources/accelerometer_step_detector.dart';
 import 'package:fitness_app/features/steps/data/datasources/mock_pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/step_local_datasource.dart';
@@ -78,8 +79,9 @@ Future<void> init({bool isSimulator = false}) async {
       () => MockPedometerDataSource(),
     );
   } else {
+    // Use accelerometer-based step detection for more accurate per-step counting
     sl.registerLazySingleton<PedometerDataSource>(
-      () => PedometerDataSourceImpl(),
+      () => AccelerometerStepDetector(),
     );
   }
 
