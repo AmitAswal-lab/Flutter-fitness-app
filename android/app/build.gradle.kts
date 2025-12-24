@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.fitness_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36  // Required for sensors_plus, device_info_plus, shared_preferences plugins
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

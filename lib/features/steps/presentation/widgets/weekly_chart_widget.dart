@@ -18,6 +18,9 @@ class WeeklyChartWidget extends StatelessWidget {
             ? _getWeeklyData(state.stepRecord)
             : _getEmptyWeekData();
 
+        // Generate day labels for the last 7 days
+        final dayLabels = _getDayLabels();
+
         return SizedBox(
           height: 180,
           child: Column(
@@ -29,7 +32,7 @@ class WeeklyChartWidget extends StatelessWidget {
                   children: weeklyData.asMap().entries.map((entry) {
                     final index = entry.key;
                     final record = entry.value;
-                    final isToday = index == 6;
+                    final isToday = index == 6; // Last bar is always today
                     return _buildBar(record.steps, isToday);
                   }).toList(),
                 ),
@@ -37,31 +40,25 @@ class WeeklyChartWidget extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                      final index = entry.key;
-                      final day = entry.value;
-                      final isToday = index == _getCurrentDayIndex();
-                      return SizedBox(
-                        width: 36,
-                        child: Text(
-                          day,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isToday
-                                ? AppColors.primary
-                                : Colors.grey[600],
-                            fontWeight: isToday
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            fontSize: 12,
-                          ),
-                        ),
-                      );
-                    })
-                    .toList(),
+                children: dayLabels.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final day = entry.value;
+                  final isToday = index == 6; // Last label is always today
+                  return SizedBox(
+                    width: 36,
+                    child: Text(
+                      day,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isToday ? AppColors.primary : Colors.grey[600],
+                        fontWeight: isToday
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        fontSize: 12,
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -104,15 +101,25 @@ class WeeklyChartWidget extends StatelessWidget {
     );
   }
 
-  int _getCurrentDayIndex() {
-    // Monday = 0, Sunday = 6
-    final weekday = DateTime.now().weekday;
-    return weekday - 1; // DateTime weekday is 1-7, we need 0-6
+  /// Get day labels for the last 7 days (ending with today)
+  List<String> _getDayLabels() {
+    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final now = DateTime.now();
+    final labels = <String>[];
+
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      // DateTime.weekday: Monday = 1, Sunday = 7
+      // We need index: Monday = 0, Sunday = 6
+      final dayIndex = date.weekday - 1;
+      labels.add(dayNames[dayIndex]);
+    }
+
+    return labels;
   }
 
   List<StepRecord> _getWeeklyData(StepRecord currentRecord) {
-    // For now, show current day as last entry, rest as placeholder
-    // In a full implementation, this would come from the BLoC
+    // Show last 7 days, with today's actual count at the end
     final now = DateTime.now();
     final List<StepRecord> data = [];
 
@@ -123,6 +130,7 @@ class WeeklyChartWidget extends StatelessWidget {
         now.day,
       ).subtract(Duration(days: i));
       if (i == 0) {
+        // Today - use current record
         data.add(currentRecord);
       } else {
         // Placeholder - in real app, fetch from history

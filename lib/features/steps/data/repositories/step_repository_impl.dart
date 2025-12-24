@@ -45,87 +45,36 @@ class StepRepositoryImpl implements StepsRepository {
     // Load saved state
     final savedData = await stepLocalDatasource.getLastSavedSteps(userId);
 
-    int savedSteps = 0;
-    int? lastSavedPedometerValue;
-
-    if (savedData != null && _isToday(savedData.timestamp)) {
-      savedSteps = savedData.steps;
-      lastSavedPedometerValue = savedData.lastPedometerValue;
+    // Check if we need to archive yesterday's data
+    if (savedData != null && !_isToday(savedData.timestamp)) {
+      await stepLocalDatasource.saveDailyTotal(
+        userId,
+        savedData.timestamp,
+        savedData.steps,
+      );
     }
 
-    // Yield initial saved value
-    yield StepRecord(steps: savedSteps, timestamp: DateTime.now());
+    // Yield initial value
+    final initialSteps = savedData != null && _isToday(savedData.timestamp)
+        ? savedData.steps
+        : 0;
+    yield StepRecord(steps: initialSteps, timestamp: DateTime.now());
 
-    bool isFirstEvent = true;
-    int sessionBaseline = 0;
-
-    // Listen to the raw sensor stream
+    // Listen to the foreground service stream
+    // The foreground service sends the TOTAL daily step count directly
+    // No baseline calculation needed - just pass through the values
     await for (final sensorEvent in pedometerDatasource.getStepStream()) {
-      final currentPedometerValue = sensorEvent.steps;
-
-      if (isFirstEvent) {
-        isFirstEvent = false;
-
-        // If we have a saved pedometer value from before, calculate background steps
-        if (lastSavedPedometerValue != null) {
-          int backgroundSteps = currentPedometerValue - lastSavedPedometerValue;
-
-          // Sanity check: if negative (pedometer reset) or unreasonably large, ignore
-          if (backgroundSteps < 0 || backgroundSteps > 50000) {
-            backgroundSteps = 0;
-          }
-
-          // Add background steps to saved steps
-          savedSteps += backgroundSteps;
-        }
-
-        // Set baseline for this session
-        sessionBaseline = currentPedometerValue;
-
-        // Yield the updated total (saved + background steps)
-        final updatedRecord = StepRecord(
-          steps: savedSteps,
-          timestamp: DateTime.now(),
-        );
-
-        await stepLocalDatasource.cacheDailySteps(
-          userId,
-          StepModel(
-            steps: savedSteps,
-            timestamp: updatedRecord.timestamp,
-            lastPedometerValue: currentPedometerValue,
-          ),
-        );
-
-        yield updatedRecord;
-        continue;
-      }
-
-      // Calculate steps walked in this active session
-      int sessionSteps = currentPedometerValue - sessionBaseline;
-
-      // Sanity check for negative values (pedometer reset mid-session)
-      if (sessionSteps < 0) {
-        sessionBaseline = currentPedometerValue;
-        sessionSteps = 0;
-      }
-
-      // Total = saved steps + session steps
-      int totalStepsToday = savedSteps + sessionSteps;
+      final totalStepsToday = sensorEvent.steps;
 
       final updatedRecord = StepRecord(
         steps: totalStepsToday,
         timestamp: DateTime.now(),
       );
 
-      // Save with current pedometer value for future background calculation
+      // Cache the current total
       await stepLocalDatasource.cacheDailySteps(
         userId,
-        StepModel(
-          steps: totalStepsToday,
-          timestamp: updatedRecord.timestamp,
-          lastPedometerValue: currentPedometerValue,
-        ),
+        StepModel(steps: totalStepsToday, timestamp: updatedRecord.timestamp),
       );
 
       yield updatedRecord;
