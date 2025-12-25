@@ -15,11 +15,14 @@ class WeeklyChartWidget extends StatelessWidget {
       builder: (context, state) {
         // Get weekly history from bloc if available
         final List<StepRecord> weeklyData = state is StepsLoadSuccess
-            ? _getWeeklyData(state.stepRecord)
+            ? _getWeeklyData(state.stepRecord, state.weeklyHistory)
             : _getEmptyWeekData();
 
         // Generate day labels for the last 7 days
         final dayLabels = _getDayLabels();
+
+        // Calculate today's index (Mon=0, Sun=6)
+        final todayIndex = DateTime.now().weekday - 1;
 
         return SizedBox(
           height: 180,
@@ -32,7 +35,7 @@ class WeeklyChartWidget extends StatelessWidget {
                   children: weeklyData.asMap().entries.map((entry) {
                     final index = entry.key;
                     final record = entry.value;
-                    final isToday = index == 6; // Last bar is always today
+                    final isToday = index == todayIndex;
                     return _buildBar(record.steps, isToday);
                   }).toList(),
                 ),
@@ -43,7 +46,7 @@ class WeeklyChartWidget extends StatelessWidget {
                 children: dayLabels.asMap().entries.map((entry) {
                   final index = entry.key;
                   final day = entry.value;
-                  final isToday = index == 6; // Last label is always today
+                  final isToday = index == todayIndex;
                   return SizedBox(
                     width: 36,
                     child: Text(
@@ -101,40 +104,42 @@ class WeeklyChartWidget extends StatelessWidget {
     );
   }
 
-  /// Get day labels for the last 7 days (ending with today)
+  /// Get day labels for Monday to Sunday
   List<String> _getDayLabels() {
-    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    final now = DateTime.now();
-    final labels = <String>[];
-
-    for (int i = 6; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
-      // DateTime.weekday: Monday = 1, Sunday = 7
-      // We need index: Monday = 0, Sunday = 6
-      final dayIndex = date.weekday - 1;
-      labels.add(dayNames[dayIndex]);
-    }
-
-    return labels;
+    return ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   }
 
-  List<StepRecord> _getWeeklyData(StepRecord currentRecord) {
-    // Show last 7 days, with today's actual count at the end
+  List<StepRecord> _getWeeklyData(
+    StepRecord currentRecord,
+    List<StepRecord> history,
+  ) {
     final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
+    // Find Monday of the current week (weekday 1 is Mon, 7 is Sun)
+    final monday = todayStart.subtract(Duration(days: now.weekday - 1));
+
     final List<StepRecord> data = [];
 
-    for (int i = 6; i >= 0; i--) {
-      final date = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: i));
-      if (i == 0) {
-        // Today - use current record
+    for (int i = 0; i < 7; i++) {
+      final date = monday.add(Duration(days: i));
+
+      if (date.isAtSameMomentAs(todayStart)) {
+        // Today - use current record (realtime)
         data.add(currentRecord);
-      } else {
-        // Placeholder - in real app, fetch from history
+      } else if (date.isAfter(todayStart)) {
+        // Future days - 0 steps
         data.add(StepRecord(steps: 0, timestamp: date));
+      } else {
+        // Past days - find matching record in history
+        final record = history.firstWhere(
+          (h) =>
+              h.timestamp.year == date.year &&
+              h.timestamp.month == date.month &&
+              h.timestamp.day == date.day,
+          orElse: () => StepRecord(steps: 0, timestamp: date),
+        );
+        data.add(record);
       }
     }
 

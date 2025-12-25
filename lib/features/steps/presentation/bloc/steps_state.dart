@@ -13,11 +13,15 @@ final class StepsLoading extends StepsState {}
 
 final class StepsLoadSuccess extends StepsState {
   final StepRecord stepRecord;
+  final List<StepRecord> weeklyHistory;
 
-  const StepsLoadSuccess({required this.stepRecord});
+  const StepsLoadSuccess({
+    required this.stepRecord,
+    this.weeklyHistory = const [],
+  });
 
   @override
-  List<Object> get props => [stepRecord];
+  List<Object> get props => [stepRecord, weeklyHistory];
 }
 
 final class StepsError extends StepsState {

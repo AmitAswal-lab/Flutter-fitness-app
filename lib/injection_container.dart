@@ -99,7 +99,9 @@ Future<void> init({bool isSimulator = false}) async {
   sl.registerLazySingleton(() => GetWeeklySteps(sl()));
 
   // Bloc
-  sl.registerFactory(() => StepsBloc(getStepStream: sl()));
+  sl.registerFactory(
+    () => StepsBloc(getStepStream: sl(), getWeeklySteps: sl()),
+  );
 
   //=== Profile Feature ===
   // DataSources
