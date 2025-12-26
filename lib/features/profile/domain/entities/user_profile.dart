@@ -35,6 +35,81 @@ enum FitnessLevel {
   }
 }
 
+enum MainGoal {
+  loseWeight,
+  buildMuscle,
+  keepFit;
+
+  String get displayName {
+    switch (this) {
+      case MainGoal.loseWeight:
+        return 'Lose Weight';
+      case MainGoal.buildMuscle:
+        return 'Build Muscle';
+      case MainGoal.keepFit:
+        return 'Keep Fit';
+    }
+  }
+
+  String get id {
+    switch (this) {
+      case MainGoal.loseWeight:
+        return 'lose_weight';
+      case MainGoal.buildMuscle:
+        return 'build_muscle';
+      case MainGoal.keepFit:
+        return 'keep_fit';
+    }
+  }
+
+  static MainGoal fromId(String id) {
+    return MainGoal.values.firstWhere(
+      (e) => e.id == id,
+      orElse: () => MainGoal.keepFit,
+    );
+  }
+}
+
+enum ActivityLevel {
+  sedentary,
+  lightlyActive,
+  moderatelyActive,
+  veryActive;
+
+  String get displayName {
+    switch (this) {
+      case ActivityLevel.sedentary:
+        return 'Sedentary';
+      case ActivityLevel.lightlyActive:
+        return 'Lightly Active';
+      case ActivityLevel.moderatelyActive:
+        return 'Moderately Active';
+      case ActivityLevel.veryActive:
+        return 'Very Active';
+    }
+  }
+
+  String get id {
+    switch (this) {
+      case ActivityLevel.sedentary:
+        return 'sedentary';
+      case ActivityLevel.lightlyActive:
+        return 'lightly_active';
+      case ActivityLevel.moderatelyActive:
+        return 'moderately_active';
+      case ActivityLevel.veryActive:
+        return 'very_active';
+    }
+  }
+
+  static ActivityLevel fromId(String id) {
+    return ActivityLevel.values.firstWhere(
+      (e) => e.id == id,
+      orElse: () => ActivityLevel.sedentary,
+    );
+  }
+}
+
 class UserProfile extends Equatable {
   final String userId;
   final double? heightCm;
@@ -44,6 +119,10 @@ class UserProfile extends Equatable {
   final int stepGoal;
   final FitnessLevel? fitnessLevel;
 
+  // New Onboarding Fields
+  final MainGoal? mainGoal;
+  final ActivityLevel? activityLevel;
+  final int? weeklyTrainingDays;
   const UserProfile({
     required this.userId,
     this.heightCm,
@@ -52,6 +131,9 @@ class UserProfile extends Equatable {
     this.gender,
     this.stepGoal = 10000,
     this.fitnessLevel,
+    this.mainGoal,
+    this.activityLevel,
+    this.weeklyTrainingDays,
   });
 
   /// Calculate stride length based on height (walking formula)
@@ -83,9 +165,9 @@ class UserProfile extends Equatable {
   bool get isComplete =>
       heightCm != null &&
       weightKg != null &&
-      dateOfBirth != null &&
       gender != null &&
-      fitnessLevel != null;
+      mainGoal != null &&
+      activityLevel != null;
 
   @override
   List<Object?> get props => [
@@ -96,5 +178,8 @@ class UserProfile extends Equatable {
     gender,
     stepGoal,
     fitnessLevel,
+    mainGoal,
+    activityLevel,
+    weeklyTrainingDays,
   ];
 }

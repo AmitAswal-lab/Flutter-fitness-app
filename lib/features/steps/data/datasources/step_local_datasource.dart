@@ -67,14 +67,43 @@ class StepLocalDatasourceImpl implements StepLocalDatasource {
     );
   }
 
+  Future<void> _syncArchivedSteps(String userId) async {
+    final prevDateStr = sharedPreferences.getString('previous_day_date');
+    if (prevDateStr != null) {
+      final prevSteps = sharedPreferences.getInt('previous_day_steps') ?? 0;
+
+      // Parse date
+      try {
+        final parts = prevDateStr.split('-');
+        if (parts.length == 3) {
+          final date = DateTime(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          );
+          await saveDailyTotal(userId, date, prevSteps);
+
+          // Clear archive after saving
+          await sharedPreferences.remove('previous_day_date');
+          await sharedPreferences.remove('previous_day_steps');
+        }
+      } catch (e) {
+        // ignore error
+      }
+    }
+  }
+
   @override
   Future<List<StepModel>> getweeklyHistory(String userId) async {
+    // Check for any pending archived steps from native side
+    await _syncArchivedSteps(userId);
+
     final historyJson = sharedPreferences.getString(_historyKey(userId));
     if (historyJson == null) return [];
 
     final history = json.decode(historyJson) as Map<String, dynamic>;
     final now = DateTime.now();
-    final List<StepModel> result = [];
+    final result = <StepModel>[];
 
     // Get last 7 days
     for (int i = 6; i >= 0; i--) {

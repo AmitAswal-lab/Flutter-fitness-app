@@ -9,6 +9,9 @@ class ProfileModel extends UserProfile {
     super.gender,
     super.stepGoal,
     super.fitnessLevel,
+    super.mainGoal,
+    super.activityLevel,
+    super.weeklyTrainingDays,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,13 @@ class ProfileModel extends UserProfile {
       fitnessLevel: json['fitnessLevel'] != null
           ? FitnessLevel.fromId(json['fitnessLevel'] as String)
           : null,
+      mainGoal: json['mainGoal'] != null
+          ? MainGoal.fromId(json['mainGoal'] as String)
+          : null,
+      activityLevel: json['activityLevel'] != null
+          ? ActivityLevel.fromId(json['activityLevel'] as String)
+          : null,
+      weeklyTrainingDays: json['weeklyTrainingDays'] as int?,
     );
   }
 
@@ -40,6 +50,9 @@ class ProfileModel extends UserProfile {
       'gender': gender,
       'stepGoal': stepGoal,
       'fitnessLevel': fitnessLevel?.id,
+      'mainGoal': mainGoal?.id,
+      'activityLevel': activityLevel?.id,
+      'weeklyTrainingDays': weeklyTrainingDays,
     };
   }
 
@@ -52,6 +65,9 @@ class ProfileModel extends UserProfile {
       gender: gender,
       stepGoal: stepGoal,
       fitnessLevel: fitnessLevel,
+      mainGoal: mainGoal,
+      activityLevel: activityLevel,
+      weeklyTrainingDays: weeklyTrainingDays,
     );
   }
 
@@ -63,6 +79,9 @@ class ProfileModel extends UserProfile {
     String? gender,
     int? stepGoal,
     FitnessLevel? fitnessLevel,
+    MainGoal? mainGoal,
+    ActivityLevel? activityLevel,
+    int? weeklyTrainingDays,
   }) {
     return ProfileModel(
       userId: userId ?? this.userId,
@@ -72,6 +91,9 @@ class ProfileModel extends UserProfile {
       gender: gender ?? this.gender,
       stepGoal: stepGoal ?? this.stepGoal,
       fitnessLevel: fitnessLevel ?? this.fitnessLevel,
+      mainGoal: mainGoal ?? this.mainGoal,
+      activityLevel: activityLevel ?? this.activityLevel,
+      weeklyTrainingDays: weeklyTrainingDays ?? this.weeklyTrainingDays,
     );
   }
 
@@ -84,6 +106,9 @@ class ProfileModel extends UserProfile {
       gender: entity.gender,
       stepGoal: entity.stepGoal,
       fitnessLevel: entity.fitnessLevel,
+      mainGoal: entity.mainGoal,
+      activityLevel: entity.activityLevel,
+      weeklyTrainingDays: entity.weeklyTrainingDays,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:fitness_app/features/profile/domain/entities/user_profile.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:fitness_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:fitness_app/features/steps/data/services/step_counter_service.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/widgets/step_counter_card.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
@@ -28,10 +29,10 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    _requestPermission();
+    _requestAllPermissions();
   }
 
-  Future<void> _requestPermission() async {
+  Future<void> _requestAllPermissions() async {
     // Skip permission request on simulator - auto-grant for testing
     if (DeviceUtils.isSimulatorSync) {
       setState(() {
@@ -41,15 +42,35 @@ class _HomepageState extends State<Homepage> {
       return;
     }
 
-    final status = await Permission.activityRecognition.request();
-    setState(() {
-      _permissionGranted = status.isGranted;
-      _permissionChecked = true;
-    });
+    try {
+      // Request Activity Recognition permission
+      final activityStatus = await Permission.activityRecognition.request();
+
+      // Request Notification permission for foreground service (non-blocking)
+      try {
+        await StepCounterService.requestPermissions();
+      } catch (e) {
+        // Ignore notification permission errors - not critical
+        debugPrint('Notification permission error: $e');
+      }
+
+      setState(() {
+        _permissionGranted = activityStatus.isGranted;
+        _permissionChecked = true;
+      });
+    } catch (e) {
+      // If permission request fails, still allow app to proceed
+      debugPrint('Permission request error: $e');
+      setState(() {
+        _permissionGranted = false;
+        _permissionChecked = true;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show loading while checking permissions
     if (!_permissionChecked) {
       return Scaffold(
         appBar: AppBar(title: const Text('Home')),
@@ -57,7 +78,12 @@ class _HomepageState extends State<Homepage> {
       );
     }
 
-    if (!_permissionGranted) {
+    final authState = context.read<AuthBloc>().state;
+    final userId = authState is AuthAuthenticated ? authState.user.uid : '';
+
+    // If strictly denied (and we know it), we could show the "Required" screen.
+    // But let's verify logic:
+    if (_permissionChecked && !_permissionGranted) {
       return Scaffold(
         appBar: AppBar(title: const Text('Home')),
         body: Center(
@@ -89,9 +115,6 @@ class _HomepageState extends State<Homepage> {
         ),
       );
     }
-
-    final authState = context.read<AuthBloc>().state;
-    final userId = authState is AuthAuthenticated ? authState.user.uid : '';
 
     return MultiBlocProvider(
       providers: [

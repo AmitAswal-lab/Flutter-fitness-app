@@ -148,12 +148,12 @@ class WeeklyChartWidget extends StatelessWidget {
 
   List<StepRecord> _getEmptyWeekData() {
     final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    // Find Monday of the current week
+    final monday = todayStart.subtract(Duration(days: now.weekday - 1));
+
     return List.generate(7, (i) {
-      final date = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: 6 - i));
+      final date = monday.add(Duration(days: i));
       return StepRecord(steps: 0, timestamp: date);
     });
   }

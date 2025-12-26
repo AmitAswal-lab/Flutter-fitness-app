@@ -14,6 +14,7 @@ import 'package:fitness_app/features/profile/domain/repositories/profile_reposit
 import 'package:fitness_app/features/profile/domain/usecases/get_profile.dart';
 import 'package:fitness_app/features/profile/domain/usecases/save_profile.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:fitness_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:fitness_app/features/steps/data/datasources/foreground_step_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/mock_pedometer_datasource.dart';
 import 'package:fitness_app/features/steps/data/datasources/pedometer_datasource.dart';
@@ -130,4 +131,12 @@ Future<void> init({bool isSimulator = false}) async {
   // Blocs
   sl.registerFactory(() => WorkoutBloc(repository: sl()));
   sl.registerFactory(() => WorkoutHistoryBloc(repository: sl()));
+
+  //=== Onboarding Feature ===
+  sl.registerFactory(
+    () => OnboardingBloc(
+      saveProfile: sl(),
+      userId: sl<FirebaseAuth>().currentUser?.uid ?? '',
+    ),
+  );
 }
