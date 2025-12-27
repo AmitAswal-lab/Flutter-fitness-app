@@ -25,10 +25,13 @@ import 'package:fitness_app/features/steps/domain/usecases/get_daily_steps.dart'
 import 'package:fitness_app/features/steps/domain/usecases/get_step_stream.dart';
 import 'package:fitness_app/features/steps/domain/usecases/get_weekly_steps.dart';
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
+import 'package:fitness_app/features/home_workout/data/repositories/home_workout_repository_impl.dart';
 import 'package:fitness_app/features/workout/data/repositories/workout_repository_impl.dart';
+import 'package:fitness_app/features/home_workout/domain/repositories/home_workout_repository.dart';
 import 'package:fitness_app/features/workout/domain/repositories/workout_repository.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_history_bloc.dart';
+import 'package:fitness_app/features/home_workout/presentation/bloc/home_workout_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -127,10 +130,14 @@ Future<void> init({bool isSimulator = false}) async {
   sl.registerLazySingleton<WorkoutRepository>(
     () => WorkoutRepositoryImpl(sharedPreferences: sl()),
   );
+  sl.registerLazySingleton<HomeWorkoutRepository>(
+    () => HomeWorkoutRepositoryImpl(),
+  );
 
   // Blocs
   sl.registerFactory(() => WorkoutBloc(repository: sl()));
   sl.registerFactory(() => WorkoutHistoryBloc(repository: sl()));
+  sl.registerFactory(() => HomeWorkoutBloc(repository: sl()));
 
   //=== Onboarding Feature ===
   sl.registerFactory(

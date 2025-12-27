@@ -34,6 +34,9 @@ class AppColors {
   static const Color workoutCard = Color(0xFFFF7043);
   static const Color workoutCardDark = Color(0xFFE64A19);
 
+  static const Color homeWorkoutCard = Color(0xFF6B8EFF);
+  static const Color homeWorkoutCardDark = Color(0xFF4A6FD9);
+
   // Light colors for use on dark backgrounds
   static const Color white = Colors.white;
   static const Color white70 = Color(0xB3FFFFFF);

@@ -9,6 +9,7 @@ import 'package:fitness_app/features/steps/data/services/step_counter_service.da
 import 'package:fitness_app/features/steps/presentation/bloc/steps_bloc.dart';
 import 'package:fitness_app/features/steps/presentation/widgets/step_counter_card.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
+import 'package:fitness_app/features/home_workout/presentation/pages/home_workout_categories_page.dart';
 import 'package:fitness_app/features/workout/presentation/pages/workout_library_page.dart';
 import 'package:fitness_app/injection_container.dart';
 import 'package:flutter/material.dart';
@@ -176,11 +177,80 @@ class _HomeContent extends StatelessWidget {
               child: Column(
                 children: [
                   StepCounterCard(userProfile: profile),
+                  _buildHomeWorkoutCard(context),
                   _buildWorkoutCard(context),
                 ],
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeWorkoutCard(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: () => _navigateToHomeWorkout(context),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.homeWorkoutCard,
+                AppColors.homeWorkoutCardDark,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.homeWorkoutCardDark.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.white20,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.home_filled,
+                  color: AppColors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Home Workout',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColors.white70,
+                size: 20,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -265,6 +335,13 @@ class _HomeContent extends StatelessWidget {
           child: WorkoutLibraryPage(userId: userId),
         ),
       ),
+    );
+  }
+
+  void _navigateToHomeWorkout(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeWorkoutCategoriesPage()),
     );
   }
 
