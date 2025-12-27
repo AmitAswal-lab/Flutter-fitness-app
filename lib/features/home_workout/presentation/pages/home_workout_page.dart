@@ -1,7 +1,9 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_template.dart';
 import 'package:fitness_app/features/home_workout/presentation/bloc/home_workout_bloc.dart';
+import 'package:fitness_app/features/home_workout/presentation/bloc/active_home_workout_bloc.dart';
 import 'package:fitness_app/features/home_workout/presentation/pages/edit_workout_page.dart';
+import 'package:fitness_app/features/home_workout/presentation/pages/active_home_workout_page.dart';
 import 'package:fitness_app/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -139,7 +141,17 @@ class HomeWorkoutPage extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
-                            // TODO: Navigate to active workout session
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (_) =>
+                                      sl<ActiveHomeWorkoutBloc>()
+                                        ..add(StartWorkout(state.workout!)),
+                                  child: const ActiveHomeWorkoutPage(),
+                                ),
+                              ),
+                            );
                           },
                           child: const Text(
                             "Start",

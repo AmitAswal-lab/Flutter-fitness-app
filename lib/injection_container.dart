@@ -32,6 +32,7 @@ import 'package:fitness_app/features/workout/domain/repositories/workout_reposit
 import 'package:fitness_app/features/workout/presentation/bloc/workout_bloc.dart';
 import 'package:fitness_app/features/workout/presentation/bloc/workout_history_bloc.dart';
 import 'package:fitness_app/features/home_workout/presentation/bloc/home_workout_bloc.dart';
+import 'package:fitness_app/features/home_workout/presentation/bloc/active_home_workout_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -138,6 +139,7 @@ Future<void> init({bool isSimulator = false}) async {
   sl.registerFactory(() => WorkoutBloc(repository: sl()));
   sl.registerFactory(() => WorkoutHistoryBloc(repository: sl()));
   sl.registerFactory(() => HomeWorkoutBloc(repository: sl()));
+  sl.registerFactory(() => ActiveHomeWorkoutBloc());
 
   //=== Onboarding Feature ===
   sl.registerFactory(
