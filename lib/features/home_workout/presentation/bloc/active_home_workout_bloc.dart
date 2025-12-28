@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:fitness_app/core/services/audio_service.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_template.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,6 +11,7 @@ part 'active_home_workout_state.dart';
 class ActiveHomeWorkoutBloc
     extends Bloc<ActiveHomeWorkoutEvent, ActiveHomeWorkoutState> {
   Timer? _timer;
+  final AudioService _audioService = AudioService();
 
   static const int preparationTime = 15;
   static const int defaultRestTime = 20;
@@ -51,6 +53,10 @@ class ActiveHomeWorkoutBloc
         startTime: DateTime.now(),
       ),
     );
+
+    // Announce workout name during prep (not exercise name)
+    _audioService.speakPreparation(event.workout.name);
+
     _startTimer();
   }
 
@@ -62,6 +68,10 @@ class ActiveHomeWorkoutBloc
     if (newTime <= 0) {
       _handlePhaseComplete(emit);
     } else {
+      // Countdown beeps during rest phase
+      if (state.phase == WorkoutPhase.rest && newTime <= 3 && newTime > 0) {
+        _audioService.speakCountdown(newTime);
+      }
       emit(state.copyWith(timeRemaining: newTime));
     }
   }
@@ -106,6 +116,15 @@ class ActiveHomeWorkoutBloc
       state.copyWith(phase: WorkoutPhase.exercise, timeRemaining: exerciseTime),
     );
 
+    // Announce exercise
+    _audioService.speakExerciseStart(
+      exerciseName: exercise.exercise.name,
+      durationSeconds: exercise.durationSeconds > 0
+          ? exercise.durationSeconds
+          : null,
+      reps: exercise.reps > 0 ? exercise.reps : null,
+    );
+
     // If rep-based, stop the timer (user taps to complete)
     if (exercise.durationSeconds == 0) {
       _stopTimer();
@@ -116,6 +135,7 @@ class ActiveHomeWorkoutBloc
     // If last exercise, go to complete
     if (state.isLastExercise) {
       emit(state.copyWith(phase: WorkoutPhase.complete));
+      _audioService.speakComplete();
       _stopTimer();
       return;
     }
@@ -131,6 +151,7 @@ class ActiveHomeWorkoutBloc
 
     if (nextIndex >= state.totalExercises) {
       emit(state.copyWith(phase: WorkoutPhase.complete));
+      _audioService.speakComplete();
       _stopTimer();
       return;
     }
@@ -147,6 +168,15 @@ class ActiveHomeWorkoutBloc
         currentExerciseIndex: nextIndex,
         timeRemaining: exerciseTime,
       ),
+    );
+
+    // Announce the next exercise
+    _audioService.speakExerciseStart(
+      exerciseName: nextExercise.exercise.name,
+      durationSeconds: nextExercise.durationSeconds > 0
+          ? nextExercise.durationSeconds
+          : null,
+      reps: nextExercise.reps > 0 ? nextExercise.reps : null,
     );
 
     // If rep-based, stop timer
