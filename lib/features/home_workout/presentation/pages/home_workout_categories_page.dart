@@ -1,4 +1,6 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
+import 'package:fitness_app/features/home_workout/presentation/pages/create_workout_page.dart';
+import 'package:fitness_app/features/home_workout/presentation/pages/exercise_library_page.dart';
 import 'package:fitness_app/features/home_workout/presentation/pages/home_workout_page.dart';
 import 'package:flutter/material.dart';
 
@@ -54,6 +56,50 @@ class HomeWorkoutCategoriesPage extends StatelessWidget {
               icon: Icons.directions_run,
               color: AppColors.textHint,
               isComingSoon: true,
+            ),
+            const SizedBox(height: 24),
+            // Create Workout Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CreateWorkoutPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Custom Workout'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Exercise Library Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ExerciseLibraryPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.library_books),
+                label: const Text('Browse Exercise Library'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: AppColors.primary),
+                  foregroundColor: AppColors.primary,
+                ),
+              ),
             ),
           ],
         ),
