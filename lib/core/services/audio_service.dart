@@ -1,31 +1,64 @@
+import 'package:audio_session/audio_session.dart' as audio_session;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 /// Service for handling audio feedback during workouts
+/// Uses audio_session for proper coordination between TTS and background music
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
   AudioService._internal();
 
   final FlutterTts _tts = FlutterTts();
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _musicPlayer = AudioPlayer();
+  audio_session.AudioSession? _audioSession;
   bool _isInitialized = false;
+  bool _isMusicPlaying = false;
+  double _musicVolume = 0.4;
 
-  /// Initialize TTS settings
+  /// Check if music is currently playing
+  bool get isMusicPlaying => _isMusicPlaying;
+
+  /// Initialize audio session, TTS and music player
   Future<void> init() async {
     if (_isInitialized) return;
 
+    // Configure the audio session for mixing audio
+    _audioSession = await audio_session.AudioSession.instance;
+    await _audioSession!.configure(
+      audio_session.AudioSessionConfiguration(
+        avAudioSessionCategory: audio_session.AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions:
+            audio_session.AVAudioSessionCategoryOptions.mixWithOthers,
+        avAudioSessionMode: audio_session.AVAudioSessionMode.defaultMode,
+        androidAudioAttributes: const audio_session.AndroidAudioAttributes(
+          contentType: audio_session.AndroidAudioContentType.music,
+          usage: audio_session.AndroidAudioUsage.media,
+        ),
+        androidAudioFocusGainType:
+            audio_session.AndroidAudioFocusGainType.gainTransientMayDuck,
+        androidWillPauseWhenDucked: false,
+      ),
+    );
+
+    // Configure TTS
     await _tts.setLanguage('en-US');
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
+    await _tts.awaitSpeakCompletion(true);
+
+    // Configure music player
+    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+    await _musicPlayer.setVolume(_musicVolume);
+
     _isInitialized = true;
   }
 
   /// Speak the preparation announcement
-  Future<void> speakPreparation(String exerciseName) async {
+  Future<void> speakPreparation(String workoutName) async {
     await init();
-    await _tts.speak('Get ready for $exerciseName');
+    await _tts.speak('Get ready for $workoutName');
   }
 
   /// Speak exercise start announcement
@@ -35,13 +68,17 @@ class AudioService {
     int? reps,
   }) async {
     await init();
+
+    String text;
     if (durationSeconds != null && durationSeconds > 0) {
-      await _tts.speak('$exerciseName, $durationSeconds seconds');
+      text = '$exerciseName, $durationSeconds seconds';
     } else if (reps != null && reps > 0) {
-      await _tts.speak('$exerciseName, $reps reps');
+      text = '$exerciseName, $reps reps';
     } else {
-      await _tts.speak(exerciseName);
+      text = exerciseName;
     }
+
+    await _tts.speak(text);
   }
 
   /// Speak rest phase announcement
@@ -59,13 +96,12 @@ class AudioService {
   /// Speak workout complete
   Future<void> speakComplete() async {
     await init();
+    await stopBackgroundMusic();
     await _tts.speak('Workout complete! Great job!');
   }
 
   /// Play a beep sound for countdown
   Future<void> playBeep() async {
-    // Using a simple tone from the assets
-    // For now, we'll use TTS as a fallback for the beep
     await init();
     await _tts.speak('beep');
   }
@@ -75,9 +111,47 @@ class AudioService {
     await _tts.stop();
   }
 
+  // ========== Background Music Methods ==========
+
+  /// Start playing background music
+  Future<void> startBackgroundMusic() async {
+    await init();
+    try {
+      await _musicPlayer.play(
+        UrlSource(
+          'https://cdn.pixabay.com/download/audio/2022/03/15/audio_8cb749d484.mp3',
+        ),
+      );
+      _isMusicPlaying = true;
+    } catch (e) {
+      _isMusicPlaying = false;
+    }
+  }
+
+  /// Stop background music
+  Future<void> stopBackgroundMusic() async {
+    await _musicPlayer.stop();
+    _isMusicPlaying = false;
+  }
+
+  /// Toggle background music
+  Future<void> toggleBackgroundMusic() async {
+    if (_isMusicPlaying) {
+      await stopBackgroundMusic();
+    } else {
+      await startBackgroundMusic();
+    }
+  }
+
+  /// Set music volume (0.0 to 1.0)
+  Future<void> setMusicVolume(double volume) async {
+    _musicVolume = volume.clamp(0.0, 1.0);
+    await _musicPlayer.setVolume(_musicVolume);
+  }
+
   /// Dispose resources
   Future<void> dispose() async {
     await _tts.stop();
-    await _audioPlayer.dispose();
+    await _musicPlayer.dispose();
   }
 }

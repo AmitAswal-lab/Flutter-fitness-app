@@ -1,4 +1,5 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
+import 'package:fitness_app/core/services/audio_service.dart';
 import 'package:fitness_app/features/home_workout/presentation/bloc/active_home_workout_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,7 +78,20 @@ class ActiveHomeWorkoutPage extends StatelessWidget {
           : null,
       centerTitle: true,
       actions: [
-        if (state.phase != WorkoutPhase.complete)
+        if (state.phase != WorkoutPhase.complete) ...[
+          // Music toggle button
+          IconButton(
+            icon: Icon(
+              AudioService().isMusicPlaying
+                  ? Icons.music_note
+                  : Icons.music_off,
+              color: iconColor,
+            ),
+            onPressed: () {
+              AudioService().toggleBackgroundMusic();
+            },
+          ),
+          // Pause/Resume button
           IconButton(
             icon: Icon(
               state.isPaused ? Icons.play_arrow : Icons.pause,
@@ -93,6 +107,7 @@ class ActiveHomeWorkoutPage extends StatelessWidget {
               }
             },
           ),
+        ],
       ],
     );
   }
@@ -617,6 +632,8 @@ class ActiveHomeWorkoutPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
+              // Stop background music on exit
+              AudioService().stopBackgroundMusic();
               Navigator.pop(ctx);
               Navigator.pop(context);
             },

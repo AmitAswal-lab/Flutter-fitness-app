@@ -57,6 +57,9 @@ class ActiveHomeWorkoutBloc
     // Announce workout name during prep (not exercise name)
     _audioService.speakPreparation(event.workout.name);
 
+    // Start background music
+    _audioService.startBackgroundMusic();
+
     _startTimer();
   }
 
@@ -116,7 +119,10 @@ class ActiveHomeWorkoutBloc
       state.copyWith(phase: WorkoutPhase.exercise, timeRemaining: exerciseTime),
     );
 
-    // Announce exercise
+    // Stop background music (only plays during prep)
+    _audioService.stopBackgroundMusic();
+
+    // Announce exercise (no delay needed - audio mixing is enabled)
     _audioService.speakExerciseStart(
       exerciseName: exercise.exercise.name,
       durationSeconds: exercise.durationSeconds > 0
