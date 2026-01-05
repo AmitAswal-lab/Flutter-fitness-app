@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:fitness_app/core/services/audio_service.dart';
+import 'package:fitness_app/core/services/workout_history_service.dart';
 import 'package:fitness_app/features/workout/domain/entities/workout_template.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,6 +13,7 @@ class ActiveHomeWorkoutBloc
     extends Bloc<ActiveHomeWorkoutEvent, ActiveHomeWorkoutState> {
   Timer? _timer;
   final AudioService _audioService = AudioService();
+  final WorkoutHistoryService _historyService = WorkoutHistoryService();
 
   static const int preparationTime = 15;
   static const int defaultRestTime = 20;
@@ -140,9 +142,7 @@ class ActiveHomeWorkoutBloc
   void _transitionToRest(Emitter<ActiveHomeWorkoutState> emit) {
     // If last exercise, go to complete
     if (state.isLastExercise) {
-      emit(state.copyWith(phase: WorkoutPhase.complete));
-      _audioService.speakComplete();
-      _stopTimer();
+      _completeWorkout(emit);
       return;
     }
 
@@ -156,9 +156,7 @@ class ActiveHomeWorkoutBloc
     final nextIndex = state.currentExerciseIndex + 1;
 
     if (nextIndex >= state.totalExercises) {
-      emit(state.copyWith(phase: WorkoutPhase.complete));
-      _audioService.speakComplete();
-      _stopTimer();
+      _completeWorkout(emit);
       return;
     }
 
@@ -274,6 +272,40 @@ class ActiveHomeWorkoutBloc
     } else {
       _startTimer();
     }
+  }
+
+  void _completeWorkout(Emitter<ActiveHomeWorkoutState> emit) {
+    emit(state.copyWith(phase: WorkoutPhase.complete));
+    _audioService.speakComplete();
+    _stopTimer();
+
+    // Log workout to history
+    _logWorkoutToHistory();
+  }
+
+  void _logWorkoutToHistory() {
+    final workout = state.workout;
+    if (workout == null || state.startTime == null) return;
+
+    final now = DateTime.now();
+    final durationSeconds = now.difference(state.startTime!).inSeconds;
+
+    // Estimate calories burned (rough estimate: ~5-10 calories per minute of exercise)
+    final estimatedCalories = (durationSeconds / 60 * 7).round();
+
+    final record = WorkoutHistoryRecord(
+      workoutId: workout.id,
+      workoutName: workout.name,
+      startedAt: state.startTime!,
+      completedAt: now,
+      durationSeconds: durationSeconds,
+      exercisesCompleted: state.totalExercises,
+      totalExercises: state.totalExercises,
+      caloriesBurned: estimatedCalories,
+      isCustomWorkout: workout.isCustom,
+    );
+
+    _historyService.logWorkout(record);
   }
 
   @override

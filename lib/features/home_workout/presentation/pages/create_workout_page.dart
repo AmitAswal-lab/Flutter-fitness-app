@@ -1,4 +1,6 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
+import 'package:fitness_app/core/data/exercise_repository.dart';
+import 'package:fitness_app/core/services/custom_workout_service.dart';
 import 'package:fitness_app/features/home_workout/presentation/pages/exercise_picker_page.dart';
 import 'package:fitness_app/features/workout/domain/entities/exercise.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,12 @@ class SelectedExercise {
 }
 
 class CreateWorkoutPage extends StatefulWidget {
-  const CreateWorkoutPage({super.key});
+  /// If provided, the page will be in edit mode
+  final CustomWorkout? existingWorkout;
+
+  const CreateWorkoutPage({super.key, this.existingWorkout});
+
+  bool get isEditMode => existingWorkout != null;
 
   @override
   State<CreateWorkoutPage> createState() => _CreateWorkoutPageState();
@@ -31,6 +38,7 @@ class _CreateWorkoutPageState extends State<CreateWorkoutPage> {
   final List<SelectedExercise> _selectedExercises = [];
   String _category = 'Full Body';
   String _difficulty = 'Beginner';
+  String? _existingId; // For updates
 
   final List<String> _categories = [
     'Full Body',
@@ -41,6 +49,39 @@ class _CreateWorkoutPageState extends State<CreateWorkoutPage> {
     'HIIT',
   ];
   final List<String> _difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingWorkout();
+  }
+
+  void _loadExistingWorkout() {
+    final workout = widget.existingWorkout;
+    if (workout == null) return;
+
+    _existingId = workout.id;
+    _nameController.text = workout.name;
+    _descController.text = workout.description;
+    _category = workout.category;
+    _difficulty = workout.difficulty;
+
+    // Load exercises
+    final repo = ExerciseRepository();
+    for (final customEx in workout.exercises) {
+      final exercise = repo.getById(customEx.exerciseId);
+      if (exercise != null) {
+        _selectedExercises.add(
+          SelectedExercise(
+            exercise: exercise,
+            reps: customEx.reps,
+            durationSeconds: customEx.durationSeconds,
+            restSeconds: customEx.restSeconds,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -69,9 +110,9 @@ class _CreateWorkoutPageState extends State<CreateWorkoutPage> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Text(
-          'Create Workout',
-          style: TextStyle(
+        title: Text(
+          widget.isEditMode ? 'Edit Workout' : 'Create Workout',
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -470,12 +511,58 @@ class _CreateWorkoutPageState extends State<CreateWorkoutPage> {
     );
   }
 
-  void _saveWorkout() {
-    // TODO: Save to local storage or Firestore
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Workout saved!')));
-    Navigator.pop(context);
+  void _saveWorkout() async {
+    // Create custom workout from selected exercises
+    final now = DateTime.now();
+    final isEdit = _existingId != null;
+    final workout = CustomWorkout(
+      id: _existingId ?? 'custom_${now.millisecondsSinceEpoch}',
+      name: _nameController.text.trim(),
+      description: _descController.text.trim(),
+      category: _category,
+      difficulty: _difficulty,
+      exercises: _selectedExercises
+          .map(
+            (selected) => CustomWorkoutExercise(
+              exerciseId: selected.exercise.id,
+              exerciseName: selected.exercise.name,
+              category: selected.exercise.category.name,
+              isTimeBased: selected.exercise.isTimeBased,
+              reps: selected.reps,
+              durationSeconds: selected.durationSeconds,
+              restSeconds: selected.restSeconds,
+            ),
+          )
+          .toList(),
+      createdAt: widget.existingWorkout?.createdAt ?? now,
+      updatedAt: now,
+    );
+
+    try {
+      await CustomWorkoutService().saveWorkout(workout);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isEdit
+                  ? '"${workout.name}" updated!'
+                  : '"${workout.name}" saved!',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pop(context, workout);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }
 

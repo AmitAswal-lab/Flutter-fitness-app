@@ -1,6 +1,6 @@
 import 'package:fitness_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:fitness_app/features/auth/presentation/pages/login_page.dart';
-import 'package:fitness_app/features/dashboard/presentation/pages/homepage.dart';
+import 'package:fitness_app/features/navigation/presentation/pages/main_nav_shell.dart';
 import 'package:fitness_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:fitness_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +60,7 @@ class _ProfileCheckWrapperState extends State<ProfileCheckWrapper> {
         } else if (state is ProfileLoaded) {
           final profile = state.profile;
           if (profile != null && profile.isComplete) {
-            return const Homepage();
+            return const MainNavShell();
           } else {
             return const OnboardingPage();
           }

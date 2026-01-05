@@ -1,6 +1,7 @@
 import 'package:fitness_app/core/constants/app_colors.dart';
 import 'package:fitness_app/core/services/audio_service.dart';
 import 'package:fitness_app/features/home_workout/presentation/bloc/active_home_workout_bloc.dart';
+import 'package:fitness_app/features/home_workout/presentation/widgets/exercise_animation_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -137,21 +138,24 @@ class ActiveHomeWorkoutPage extends StatelessWidget {
         child: Column(
           children: [
             const Spacer(),
-            // Exercise preview
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.fitness_center,
-                  size: 80,
-                  color: AppColors.primary.withValues(alpha: 0.5),
+            // Exercise animation/preview
+            if (exercise != null)
+              ExerciseAnimationWidget(exercise: exercise.exercise, size: 180)
+            else
+              Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.fitness_center,
+                    size: 80,
+                    color: AppColors.primary.withValues(alpha: 0.5),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 32),
             // Ready to go text
             const Text(
@@ -222,21 +226,8 @@ class ActiveHomeWorkoutPage extends StatelessWidget {
         child: Column(
           children: [
             const Spacer(),
-            // Exercise preview
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.fitness_center,
-                  size: 80,
-                  color: AppColors.primary.withValues(alpha: 0.5),
-                ),
-              ),
-            ),
+            // Exercise animation
+            ExerciseAnimationWidget(exercise: exercise.exercise, size: 200),
             const SizedBox(height: 32),
             // Exercise name
             Text(
